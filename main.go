@@ -1,23 +1,7 @@
 package main
 
-import (
-	"net/http"
-
-	"github.com/AbdessamadEnabih/Vertex/pkg/server"
-	"github.com/gin-gonic/gin"
-)
+import "fmt"
 
 func main() {
-	server := server.NewServer() // Declare the variable here
-
-	server.Router.GET("/", func(c *gin.Context) {
-		c.JSON(200, "Base route")
-	})
-
-	server.Router.GET("/hello", func(c *gin.Context) {
-		c.JSON(200, "hello")
-		c.String(http.StatusOK, "Route accessed successfully")
-	})
-
-	server.Run()
+	fmt.Print("hello")
 }
