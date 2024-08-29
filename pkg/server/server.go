@@ -8,9 +8,11 @@ type Server struct {
 }
 
 func NewServer() *Server {
+	engine := gin.Default()
+
 	return &Server{
-		gin:    gin.Default(),
-		Router: gin.New().Group("/api"),
+		gin:    engine,
+		Router: engine.Group("/api"),
 	}
 }
 
