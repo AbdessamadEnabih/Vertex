@@ -15,5 +15,6 @@ func NewServer() *Server {
 }
 
 func (s *Server) Run() {
-	s.gin.Run()
+	s.gin.SetTrustedProxies([]string{"127.0.0.1"})
+	s.gin.Run(":8080")
 }

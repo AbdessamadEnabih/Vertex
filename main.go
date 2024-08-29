@@ -19,5 +19,5 @@ func main() {
 		c.String(http.StatusOK, "Route accessed successfully")
 	})
 
-	server.Run() // listen and serve on 0.0.0.0:8080
+	server.Run()
 }
