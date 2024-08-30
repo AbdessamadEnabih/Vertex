@@ -20,9 +20,9 @@ func newServer() *Server {
 	}
 }
 
-func (s *Server) run() {
+func (s *Server) run(PORT string) {
 	s.gin.SetTrustedProxies([]string{"127.0.0.1"})
-	s.gin.Run(":8080")
+	s.gin.Run(":" + PORT)
 }
 
 func initRoutes(server *Server) {
@@ -35,8 +35,8 @@ func initRoutes(server *Server) {
 	})
 }
 
-func StartServer() {
+func StartServer(PORT string) {
 	server := newServer()
 	initRoutes(server)
-	server.run()
+	server.run(PORT)
 }

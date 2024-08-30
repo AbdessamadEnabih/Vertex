@@ -12,13 +12,19 @@ func NewServeCommand() *cobra.Command {
 		Use:   "serve",
 		Short: "Start the Vertex server",
 		Run: func(cmd *cobra.Command, args []string) {
+			port, err := cmd.Flags().GetString("port")
+			if err != nil {
+				fmt.Printf("Error parsing port flag: %v\n", err)
+				return
+			}
+
 			fmt.Println("Starting Vertex server...")
-			server.StartServer()
+			server.StartServer(port)
 		},
 	}
 
-	cmd.Flags().StringP("port", "p", "8080", "Specify the port to listen on")
-	cmd.Flags().BoolP("debug", "d", false, "Enable debug mode")
+	// Add the port flag with a default value of ":8080"
+	cmd.Flags().StringP("port", "p", "8080", "Port to run the Vertex server on")
 
 	return cmd
 }
