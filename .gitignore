@@ -26,3 +26,4 @@ go.work.sum
 *.log
 
 .bin/
+tmp
