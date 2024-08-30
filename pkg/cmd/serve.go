@@ -24,7 +24,7 @@ func NewServeCommand() *cobra.Command {
 	}
 
 	// Add the port flag with a default value of ":8080"
-	cmd.Flags().StringP("port", "p", ":8080", "Port to run the Vertex server on")
+	cmd.Flags().StringP("port", "p", "8080", "Port to run the Vertex server on")
 
 	return cmd
 }
