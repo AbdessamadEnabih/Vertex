@@ -1,0 +1,60 @@
+root = "."
+testdata_dir = "testdata"
+tmp_dir = "tmp"
+
+[build]
+cmd = "go build -o .bin/vertex ./cmd/"
+args_bin = []
+exclude_dir = ["assets", "tmp", "vendor", "testdata"]
+exclude_file = []
+exclude_regex = ["_test.go"]
+exclude_unchanged = false
+follow_symlink = false
+full_bin = ""
+include_dir = []
+include_file = []
+kill_delay = "0s"
+log = "build-errors.log"
+poll = false
+poll_interval = 0
+post_cmd = []
+pre_cmd = []
+rerun = false
+rerun_delay = 500
+send_interrupt = false
+stop_on_error = false
+
+[color]
+app = "cyan"
+build = "yellow"
+main = "magenta"
+runner = "green"
+watcher = "cyan"
+
+[log]
+main_only = false
+time = true
+
+[project_structure]
+root_dir = "."
+src_dirs = ["cmd", "pkg"]
+test_data_dir = "testdata"
+tmp_dir = "tmp"
+
+[misc]
+clean_on_exit = false
+
+[misc]
+clean_on_exit = false
+
+[proxy]
+enabled = false
+proxy_port = 0
+
+[screen]
+clear_on_rebuild = false
+keep_scroll = true
+
+[screen]
+clear_on_rebuild = false
+keep_scroll = true
