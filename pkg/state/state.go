@@ -1,4 +1,4 @@
-package main
+package state
 
 import (
 	"fmt"
@@ -6,29 +6,29 @@ import (
 )
 
 type State struct {
-	data map[string]interface{}
+	Data map[string]interface{}
 	mu   sync.Mutex
 }
 
 func NewState() *State {
 	return &State{
-		data: make(map[string]interface{}),
+		Data: make(map[string]interface{}),
 	}
 }
 
 func (s *State) Set(key string, value interface{}) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	s.data[key] = value
+	s.Data[key] = value
 }
 
-func (s *State) Get(key string) (interface{}) {
+func (s *State) Get(key string) interface{} {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	value, ok := s.data[key]
+	value, ok := s.Data[key]
 	if !ok {
-		fmt.Println("Key not found")
-		return
+		fmt.Printf("%s not found", key)
+		return nil
 	}
 	return value
 }
