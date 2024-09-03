@@ -32,3 +32,9 @@ func (s *State) Get(key string) interface{} {
 	}
 	return value
 }
+
+func (s *State) GetAll() map[string]interface{} {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Data
+}

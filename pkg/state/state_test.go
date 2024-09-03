@@ -39,4 +39,25 @@ func Test(t *testing.T) {
 		t.Errorf("Expected nil for key %s, but got %v", invalidKey, got)
 	}
 
+	// Call GetAll and compare results
+	result := State.GetAll()
+
+	// Check if all keys exist in the result
+	if len(result) != 3 {
+		t.Errorf("Expected 3 items, got %d", len(result))
+	}
+
+}
+
+func TestState_GetAll_Empty(t *testing.T) {
+	// Create a new State instance
+	state := state.NewState()
+
+	// Call GetAll on empty state
+	result := state.GetAll()
+
+	// Check if result is empty
+	if len(result) != 0 {
+		t.Errorf("Expected empty map, got %d items", len(result))
+	}
 }
