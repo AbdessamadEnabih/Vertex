@@ -38,3 +38,13 @@ func (s *State) GetAll() map[string]interface{} {
 	defer s.mu.Unlock()
 	return s.Data
 }
+
+func (s *State) Delete(key string) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if _, ok := s.Data[key]; !ok {
+		return false
+	}
+	delete(s.Data, key)
+	return true
+}
