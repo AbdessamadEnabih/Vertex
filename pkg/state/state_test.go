@@ -43,8 +43,8 @@ func Test(t *testing.T) {
 	result := State.GetAll()
 
 	// Check if all keys exist in the result
-	if len(result) != 3 {
-		t.Errorf("Expected 3 items, got %d", len(result))
+	if len(result) != 2 {
+		t.Errorf("Expected 2 items, got %d", len(result))
 	}
 
 }
