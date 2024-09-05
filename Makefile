@@ -41,3 +41,5 @@ docker-build: ## Build Docker image
 
 docker-run: ### Run Vertex with docker
 	docker-compose up --build
+
+
