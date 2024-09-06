@@ -52,8 +52,10 @@ func Test(t *testing.T) {
 }
 
 func TestState_GetAll_Empty(t *testing.T) {
+	s := state.NewState()
+
 	// Call GetAll on empty state
-	result := State.GetAll()
+	result := s.GetAll()
 
 	// Check if result is empty
 	if len(result) != 0 {
@@ -126,12 +128,11 @@ func TestState_Update(t *testing.T) {
 	updateState.Delete("invalidkey")
 }
 
-
 func TestState_LargeKey(t *testing.T) {
 	s := state.NewState()
 	largeKey := strings.Repeat("x", 1024*1024) // 1MB key
 	value := "test"
-	
+
 	s.Set(largeKey, value)
 	got := s.Get(largeKey)
 	if got != value {
@@ -143,7 +144,7 @@ func TestState_LargeValue(t *testing.T) {
 	s := state.NewState()
 	key := "test"
 	largeValue := strings.Repeat("x", 1024*1024) // 1MB value
-	
+
 	s.Set(key, largeValue)
 	got := s.Get(key)
 	if got != largeValue {
@@ -153,17 +154,16 @@ func TestState_LargeValue(t *testing.T) {
 
 func TestState_EmptyKey(t *testing.T) {
 	s := state.NewState()
-	
-	s.Set("", "test")
-	got := s.Get("")
-	if got != "test" {
-		t.Errorf("Expected 'test', got %v", got)
+
+	err := s.Set("", "test")
+	if err.Error() != "empty key is not allowed" {
+		t.Errorf("Expected Set to return Error %s", err.Error())
 	}
 }
 
 func TestState_EmptyValue(t *testing.T) {
 	s := state.NewState()
-	
+
 	s.Set("key", "")
 	got := s.Get("key")
 	if got != "" {
@@ -173,7 +173,7 @@ func TestState_EmptyValue(t *testing.T) {
 
 func TestState_NilValue(t *testing.T) {
 	s := state.NewState()
-	
+
 	s.Set("key", nil)
 	got := s.Get("key")
 	if got != nil {
@@ -183,10 +183,10 @@ func TestState_NilValue(t *testing.T) {
 
 func TestState_SpecialCharacters(t *testing.T) {
 	s := state.NewState()
-	
+
 	specialKey := "!@#$%^&*()"
 	value := "test"
-	
+
 	s.Set(specialKey, value)
 	got := s.Get(specialKey)
 	if got != value {
@@ -196,10 +196,10 @@ func TestState_SpecialCharacters(t *testing.T) {
 
 func TestState_Unicode(t *testing.T) {
 	s := state.NewState()
-	
+
 	unicodeKey := "π"
 	unicodeValue := "αβγ"
-	
+
 	s.Set(unicodeKey, unicodeValue)
 	got := s.Get(unicodeKey)
 	if got != unicodeValue {
@@ -207,25 +207,24 @@ func TestState_Unicode(t *testing.T) {
 	}
 }
 
-
 func TestState_OutOfMemory(t *testing.T) {
 	s := state.NewState()
-	
+
 	// Attempt to store extremely large amounts of data
-	for i := 0; i < 10000 ; i++ {
+	for i := 0; i < 10000; i++ {
 		key := fmt.Sprintf("key%d", i)
 		value := strings.Repeat("x", 1024*1024) // 1MB value
-		
+
 		err := s.Set(key, value)
 		if err == nil {
 			continue
 		}
-		
+
 		// Check if the error is related to memory exhaustion
 		if !strings.Contains(err.Error(), "out of memory") {
 			t.Errorf("Expected out of memory error, got %v", err)
 		}
-		
+
 		break
 	}
 }
