@@ -48,3 +48,16 @@ func (s *State) Delete(key string) bool {
 	delete(s.Data, key)
 	return true
 }
+
+func (s *State) Update(key string, value interface{}) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, ok := s.Data[key]; !ok {
+		return false
+	}
+
+	s.Data[key] = value
+
+	return true
+}

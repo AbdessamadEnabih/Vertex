@@ -100,3 +100,25 @@ func TestState_Delete(t *testing.T) {
 		t.Errorf("Expected false when deleting already deleted key, but got true")
 	}
 }
+
+func TestState_Update(t *testing.T) {
+	// Create a new State instance for this test
+	var updateState state.State = *state.NewState()
+
+	updateState.Set("key1", 22)
+
+	value := "updatedkey"
+	updateState.Update("key1", value)
+	if got := updateState.Get("key1"); got != value {
+		t.Fatalf("Expected value to be %v and got %v", value, got)
+	}
+
+	expected := updateState.Update("invalidkey", value)
+	if expected != false {
+		t.Errorf("Expected update function to return false")
+	}
+
+	// Clean up
+	updateState.Delete("key1")
+	updateState.Delete("invalidkey")
+}
