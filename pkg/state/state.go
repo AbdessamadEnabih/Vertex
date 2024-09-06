@@ -1,6 +1,7 @@
 package state
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 )
@@ -16,10 +17,31 @@ func NewState() *State {
 	}
 }
 
-func (s *State) Set(key string, value interface{}) {
+func (s *State) Set(key string, value interface{}) error {
+	maxAllowedEntries := 100000
+
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	// Check for empty key
+	if key == "" {
+		return errors.New("empty key is not allowed")
+	}
+
+	// Check for nil value
+	if value == nil {
+		return errors.New("nil value is not allowed")
+	}
+
 	s.Data[key] = value
+
+	// Check for out-of-memory error
+	if len(s.Data) > maxAllowedEntries {
+		delete(s.Data, key)
+		return fmt.Errorf("out of memory: maximum entries (%d) exceeded", maxAllowedEntries)
+	}
+
+	return nil
 }
 
 func (s *State) Get(key string) interface{} {
@@ -46,5 +68,18 @@ func (s *State) Delete(key string) bool {
 		return false
 	}
 	delete(s.Data, key)
+	return true
+}
+
+func (s *State) Update(key string, value interface{}) bool {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if _, ok := s.Data[key]; !ok {
+		return false
+	}
+
+	s.Data[key] = value
+
 	return true
 }
