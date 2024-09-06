@@ -8,7 +8,7 @@ import (
 
 type State struct {
 	Data map[string]interface{}
-	mu   sync.Mutex
+	mu   sync.RWMutex
 }
 
 func NewState() *State {
@@ -45,8 +45,8 @@ func (s *State) Set(key string, value interface{}) error {
 }
 
 func (s *State) Get(key string) interface{} {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	value, ok := s.Data[key]
 	if !ok {
 		fmt.Printf("%s not found", key)
@@ -56,8 +56,8 @@ func (s *State) Get(key string) interface{} {
 }
 
 func (s *State) GetAll() map[string]interface{} {
-	s.mu.Lock()
-	defer s.mu.Unlock()
+	s.mu.RLock()
+	defer s.mu.RUnlock()
 	return s.Data
 }
 
