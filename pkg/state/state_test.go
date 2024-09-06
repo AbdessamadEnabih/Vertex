@@ -1,7 +1,9 @@
 package state_test
 
 import (
+	"fmt"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
@@ -113,12 +115,117 @@ func TestState_Update(t *testing.T) {
 		t.Fatalf("Expected value to be %v and got %v", value, got)
 	}
 
+	// Test update of non existent key
 	expected := updateState.Update("invalidkey", value)
 	if expected != false {
-		t.Errorf("Expected update function to return false")
+		t.Errorf("Expected false when deleting non-existent key, got true")
 	}
 
 	// Clean up
 	updateState.Delete("key1")
 	updateState.Delete("invalidkey")
+}
+
+
+func TestState_LargeKey(t *testing.T) {
+	s := state.NewState()
+	largeKey := strings.Repeat("x", 1024*1024) // 1MB key
+	value := "test"
+	
+	s.Set(largeKey, value)
+	got := s.Get(largeKey)
+	if got != value {
+		t.Errorf("Expected %s, got %v", value, got)
+	}
+}
+
+func TestState_LargeValue(t *testing.T) {
+	s := state.NewState()
+	key := "test"
+	largeValue := strings.Repeat("x", 1024*1024) // 1MB value
+	
+	s.Set(key, largeValue)
+	got := s.Get(key)
+	if got != largeValue {
+		t.Errorf("Expected %s, got %v", largeValue, got)
+	}
+}
+
+func TestState_EmptyKey(t *testing.T) {
+	s := state.NewState()
+	
+	s.Set("", "test")
+	got := s.Get("")
+	if got != "test" {
+		t.Errorf("Expected 'test', got %v", got)
+	}
+}
+
+func TestState_EmptyValue(t *testing.T) {
+	s := state.NewState()
+	
+	s.Set("key", "")
+	got := s.Get("key")
+	if got != "" {
+		t.Errorf("Expected '', got %v", got)
+	}
+}
+
+func TestState_NilValue(t *testing.T) {
+	s := state.NewState()
+	
+	s.Set("key", nil)
+	got := s.Get("key")
+	if got != nil {
+		t.Errorf("Expected nil, got %v", got)
+	}
+}
+
+func TestState_SpecialCharacters(t *testing.T) {
+	s := state.NewState()
+	
+	specialKey := "!@#$%^&*()"
+	value := "test"
+	
+	s.Set(specialKey, value)
+	got := s.Get(specialKey)
+	if got != value {
+		t.Errorf("Expected %s, got %v", value, got)
+	}
+}
+
+func TestState_Unicode(t *testing.T) {
+	s := state.NewState()
+	
+	unicodeKey := "π"
+	unicodeValue := "αβγ"
+	
+	s.Set(unicodeKey, unicodeValue)
+	got := s.Get(unicodeKey)
+	if got != unicodeValue {
+		t.Errorf("Expected %s, got %v", unicodeValue, got)
+	}
+}
+
+
+func TestState_OutOfMemory(t *testing.T) {
+	s := state.NewState()
+	
+	// Attempt to store extremely large amounts of data
+	for i := 0; i < 10000 ; i++ {
+		key := fmt.Sprintf("key%d", i)
+		value := strings.Repeat("x", 1024*1024) // 1MB value
+		
+		err := s.Set(key, value)
+		if err == nil {
+			continue
+		}
+		
+		// Check if the error is related to memory exhaustion
+		if !strings.Contains(err.Error(), "out of memory") {
+			t.Errorf("Expected out of memory error, got %v", err)
+		}
+		
+		break
+	}
 }
