@@ -1,8 +1,7 @@
 package state
 
 import (
-	"errors"
-	"fmt"
+	"regexp"
 	"sync"
 )
 
@@ -11,10 +10,40 @@ type State struct {
 	mu   sync.RWMutex
 }
 
+type StateError struct {
+	Message string
+	Cause   error
+}
+
+// Declared Errors
+var (
+	ErrOutOfMemory          = &StateError{Message: "Out of memory"}
+	ErrEmptyKey             = &StateError{Message: "Empty key is not allowed"}
+	ErrNilValue             = &StateError{Message: "Nil value is not allowed"}
+	ErrKeyNotFound          = &StateError{Message: "Key not found"}
+	ErrDuplicateKey         = &StateError{Message: "Key already exists"}
+	ErrSpecialCharactersKey = &StateError{Message: "Key with special characters is not allowed"}
+)
+
+func (e *StateError) Error() string { return e.Message }
+
 func NewState() *State {
 	return &State{
 		Data: make(map[string]interface{}),
 	}
+}
+
+// isKeyValid checks if a given key is valid according to the following rules:
+//
+//  1. The key must be non-empty.
+//  2. The key must only contain ASCII letters, digits, whitespace, underscores (_),
+//     hyphens (-), and Unicode characters in the range U+0080 to U+00FF.
+//
+// This validation helps prevent potential issues with keys containing special
+// characters or invalid Unicode sequences.
+func isKeyValid(key string) bool {
+	re := regexp.MustCompile(`^[a-zA-Z0-9[\x80-\xFF]\s-_]+$`)
+	return !re.MatchString(key)
 }
 
 func (s *State) Set(key string, value interface{}) error {
@@ -25,12 +54,20 @@ func (s *State) Set(key string, value interface{}) error {
 
 	// Check for empty key
 	if key == "" {
-		return errors.New("empty key is not allowed")
+		return ErrEmptyKey
+	}
+
+	if !isKeyValid(key) {
+		return ErrSpecialCharactersKey
 	}
 
 	// Check for nil value
 	if value == nil {
-		return errors.New("nil value is not allowed")
+		return ErrNilValue
+	}
+
+	if _, exists := s.Data[key]; exists {
+		return ErrDuplicateKey
 	}
 
 	s.Data[key] = value
@@ -38,21 +75,25 @@ func (s *State) Set(key string, value interface{}) error {
 	// Check for out-of-memory error
 	if len(s.Data) > maxAllowedEntries {
 		delete(s.Data, key)
-		return fmt.Errorf("out of memory: maximum entries (%d) exceeded", maxAllowedEntries)
+		return ErrOutOfMemory
 	}
 
 	return nil
 }
 
-func (s *State) Get(key string) interface{} {
+func (s *State) Get(key string) (interface{}, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
+
+	if key == "" {
+		return nil, ErrEmptyKey
+	}
+
 	value, ok := s.Data[key]
 	if !ok {
-		fmt.Printf("%s not found", key)
-		return nil
+		return nil, ErrKeyNotFound
 	}
-	return value
+	return value, nil
 }
 
 func (s *State) GetAll() map[string]interface{} {
