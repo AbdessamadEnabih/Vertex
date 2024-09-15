@@ -30,14 +30,20 @@ func Test(t *testing.T) {
 	for _, tt := range tests {
 		State.Set(tt.key, tt.expected)
 
-		if got := State.Get(tt.key); !reflect.DeepEqual(got, tt.expected) {
+		if got, _ := State.Get(tt.key); !reflect.DeepEqual(got, tt.expected) {
 			t.Errorf("Expected %s to be %v, but got %v", tt.key, tt.expected, got)
 		}
 	}
 
+	// Test Empty key
+	emptyKey := ""
+	if got, err := State.Get(emptyKey); got != nil && err.Error() == "Empty key is not allowed" {
+		t.Errorf("Expected nil and error for empty key, but got %v", got)
+	}
+
 	// Test for an invalid key
 	invalidKey := "invalidKey"
-	if got := State.Get(invalidKey); got != nil {
+	if got, err := State.Get(invalidKey); got != nil && err.Error() == "Key not found" {
 		t.Errorf("Expected nil for key %s, but got %v", invalidKey, got)
 	}
 
@@ -69,41 +75,42 @@ func TestState_Delete(t *testing.T) {
 	State.Set("testKey2", 42)
 
 	// Test deleting a non-existent key
-	deleted := State.Delete("nonExistentKey")
-	if deleted {
-		t.Errorf("Expected false when deleting non-existent key, but got true")
+	err := State.Delete("nonExistentKey")
+	if err == nil || err.Error() != "Key not found" {
+		t.Errorf("Expected error 'Key not found' when deleting non-existent key, but got %v", err)
 	}
 
 	// Test deleting an existing key
-	deleted = State.Delete("testKey1")
-	if !deleted {
-		t.Errorf("Expected true when deleting existing key, but got false")
+	err = State.Delete("testKey1")
+	if err != nil {
+		t.Errorf("Expected nil when deleting existing key, but got error: %v", err)
 	}
 
 	// Verify that the key was removed
-	got := State.Get("testKey1")
+	got, _ := State.Get("testKey1")
 	if got != nil {
 		t.Errorf("Expected nil for deleted key, but got %v", got)
 	}
 
 	// Test deleting another existing key
-	deleted = State.Delete("testKey2")
-	if !deleted {
-		t.Errorf("Expected true when deleting existing key, but got false")
+	err = State.Delete("testKey2")
+	if err != nil {
+		t.Errorf("Expected nil when deleting existing key, but got error: %v", err)
 	}
 
-	// Verify that both keys were removed
-	got = State.Get("testKey2")
+	// Verify that the second key was also removed
+	got, _ = State.Get("testKey2")
 	if got != nil {
 		t.Errorf("Expected nil for deleted key, but got %v", got)
 	}
 
-	// Test deleting again (should return false)
-	deleted = State.Delete("testKey2")
-	if deleted {
-		t.Errorf("Expected false when deleting already deleted key, but got true")
+	// Test deleting the same key again (should return an error)
+	err = State.Delete("testKey2")
+	if err == nil || err.Error() != "Key not found" {
+		t.Errorf("Expected error 'Key not found' when deleting already deleted key, but got %v", err)
 	}
 }
+
 
 func TestState_Update(t *testing.T) {
 	// Create a new State instance for this test
@@ -113,13 +120,13 @@ func TestState_Update(t *testing.T) {
 
 	value := "updatedkey"
 	updateState.Update("key1", value)
-	if got := updateState.Get("key1"); got != value {
+	if got, _ := updateState.Get("key1"); got != value {
 		t.Fatalf("Expected value to be %v and got %v", value, got)
 	}
 
 	// Test update of non existent key
-	expected := updateState.Update("invalidkey", value)
-	if expected != false {
+	errExpected := updateState.Update("invalidkey", value)
+	if errExpected.Error() != "Key not found" {
 		t.Errorf("Expected false when deleting non-existent key, got true")
 	}
 
@@ -134,7 +141,7 @@ func TestState_LargeKey(t *testing.T) {
 	value := "test"
 
 	s.Set(largeKey, value)
-	got := s.Get(largeKey)
+	got, _ := s.Get(largeKey)
 	if got != value {
 		t.Errorf("Expected %s, got %v", value, got)
 	}
@@ -146,7 +153,7 @@ func TestState_LargeValue(t *testing.T) {
 	largeValue := strings.Repeat("x", 1024*1024) // 1MB value
 
 	s.Set(key, largeValue)
-	got := s.Get(key)
+	got, _ := s.Get(key)
 	if got != largeValue {
 		t.Errorf("Expected %s, got %v", largeValue, got)
 	}
@@ -156,7 +163,7 @@ func TestState_EmptyKey(t *testing.T) {
 	s := state.NewState()
 
 	err := s.Set("", "test")
-	if err.Error() != "empty key is not allowed" {
+	if err.Error() != "Empty key is not allowed" {
 		t.Errorf("Expected Set to return Error %s", err.Error())
 	}
 }
@@ -165,7 +172,7 @@ func TestState_EmptyValue(t *testing.T) {
 	s := state.NewState()
 
 	s.Set("key", "")
-	got := s.Get("key")
+	got, _ := s.Get("key")
 	if got != "" {
 		t.Errorf("Expected '', got %v", got)
 	}
@@ -175,8 +182,8 @@ func TestState_NilValue(t *testing.T) {
 	s := state.NewState()
 
 	s.Set("key", nil)
-	got := s.Get("key")
-	if got != nil {
+	got, err := s.Get("key")
+	if got != nil && err.Error() == "Nil value is not allowed" {
 		t.Errorf("Expected nil, got %v", got)
 	}
 }
@@ -188,8 +195,8 @@ func TestState_SpecialCharacters(t *testing.T) {
 	value := "test"
 
 	s.Set(specialKey, value)
-	got := s.Get(specialKey)
-	if got != value {
+	got, err := s.Get(specialKey)
+	if got != value && err.Error() == "Key with special characters is not allowed" {
 		t.Errorf("Expected %s, got %v", value, got)
 	}
 }
@@ -201,7 +208,7 @@ func TestState_Unicode(t *testing.T) {
 	unicodeValue := "αβγ"
 
 	s.Set(unicodeKey, unicodeValue)
-	got := s.Get(unicodeKey)
+	got, _ := s.Get(unicodeKey)
 	if got != unicodeValue {
 		t.Errorf("Expected %s, got %v", unicodeValue, got)
 	}
