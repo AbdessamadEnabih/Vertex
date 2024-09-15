@@ -33,17 +33,27 @@ func NewState() *State {
 	}
 }
 
-// isKeyValid checks if a given key is valid according to the following rules:
-//
-//  1. The key must be non-empty.
-//  2. The key must only contain ASCII letters, digits, whitespace, underscores (_),
-//     hyphens (-), and Unicode characters in the range U+0080 to U+00FF.
-//
-// This validation helps prevent potential issues with keys containing special
-// characters or invalid Unicode sequences.
-func isKeyValid(key string) bool {
+func validateKey(key string) error {
 	re := regexp.MustCompile(`^[a-zA-Z0-9[\x80-\xFF]\s-_]+$`)
-	return !re.MatchString(key)
+
+	// ^ Matches the start of the string
+	// [a-zA-Z0-9] Matches any letter or digit
+	// [\x80-\xFF] Matches any Unicode character between U+0080 and U+00FF
+	// \s Matches any whitespace character
+	// _ Matches underscore
+	// - Matches hyphen
+	// + Means one or more occurrences of the preceding element
+
+	// Check for empty key
+	if key == "" {
+		return ErrEmptyKey
+	}
+
+	if re.MatchString(key) {
+		return ErrSpecialCharactersKey
+	}
+
+	return nil
 }
 
 func (s *State) Set(key string, value interface{}) error {
@@ -52,13 +62,8 @@ func (s *State) Set(key string, value interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
-	// Check for empty key
-	if key == "" {
-		return ErrEmptyKey
-	}
-
-	if !isKeyValid(key) {
-		return ErrSpecialCharactersKey
+	if err := validateKey(key); err != nil {
+		return err
 	}
 
 	// Check for nil value
@@ -85,8 +90,8 @@ func (s *State) Get(key string) (interface{}, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if key == "" {
-		return nil, ErrEmptyKey
+	if err := validateKey(key); err != nil {
+		return nil, err
 	}
 
 	value, ok := s.Data[key]
@@ -102,25 +107,34 @@ func (s *State) GetAll() map[string]interface{} {
 	return s.Data
 }
 
-func (s *State) Delete(key string) bool {
+func (s *State) Delete(key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+
+	if err := validateKey(key); err != nil {
+		return err
+	}
+
 	if _, ok := s.Data[key]; !ok {
-		return false
+		return ErrKeyNotFound
 	}
 	delete(s.Data, key)
-	return true
+	return nil
 }
 
-func (s *State) Update(key string, value interface{}) bool {
+func (s *State) Update(key string, value interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 
+	if err := validateKey(key); err != nil {
+		return err
+	}
+
 	if _, ok := s.Data[key]; !ok {
-		return false
+		return ErrKeyNotFound
 	}
 
 	s.Data[key] = value
 
-	return true
+	return nil
 }
