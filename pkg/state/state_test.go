@@ -75,15 +75,15 @@ func TestState_Delete(t *testing.T) {
 	State.Set("testKey2", 42)
 
 	// Test deleting a non-existent key
-	deleted := State.Delete("nonExistentKey")
-	if deleted {
-		t.Errorf("Expected false when deleting non-existent key, but got true")
+	err := State.Delete("nonExistentKey")
+	if err == nil || err.Error() != "Key not found" {
+		t.Errorf("Expected error 'Key not found' when deleting non-existent key, but got %v", err)
 	}
 
 	// Test deleting an existing key
-	deleted = State.Delete("testKey1")
-	if !deleted {
-		t.Errorf("Expected true when deleting existing key, but got false")
+	err = State.Delete("testKey1")
+	if err != nil {
+		t.Errorf("Expected nil when deleting existing key, but got error: %v", err)
 	}
 
 	// Verify that the key was removed
@@ -93,23 +93,24 @@ func TestState_Delete(t *testing.T) {
 	}
 
 	// Test deleting another existing key
-	deleted = State.Delete("testKey2")
-	if !deleted {
-		t.Errorf("Expected true when deleting existing key, but got false")
+	err = State.Delete("testKey2")
+	if err != nil {
+		t.Errorf("Expected nil when deleting existing key, but got error: %v", err)
 	}
 
-	// Verify that both keys were removed
+	// Verify that the second key was also removed
 	got, _ = State.Get("testKey2")
 	if got != nil {
 		t.Errorf("Expected nil for deleted key, but got %v", got)
 	}
 
-	// Test deleting again (should return false)
-	deleted = State.Delete("testKey2")
-	if deleted {
-		t.Errorf("Expected false when deleting already deleted key, but got true")
+	// Test deleting the same key again (should return an error)
+	err = State.Delete("testKey2")
+	if err == nil || err.Error() != "Key not found" {
+		t.Errorf("Expected error 'Key not found' when deleting already deleted key, but got %v", err)
 	}
 }
+
 
 func TestState_Update(t *testing.T) {
 	// Create a new State instance for this test
@@ -124,8 +125,8 @@ func TestState_Update(t *testing.T) {
 	}
 
 	// Test update of non existent key
-	expected := updateState.Update("invalidkey", value)
-	if expected != false {
+	errExpected := updateState.Update("invalidkey", value)
+	if errExpected.Error() != "Key not found" {
 		t.Errorf("Expected false when deleting non-existent key, got true")
 	}
 
