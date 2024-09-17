@@ -1,8 +1,7 @@
 package server
 
 import (
-	"net/http"
-
+	"github.com/AbdessamadEnabih/Vertex/pkg/server/router"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,18 +24,8 @@ func (s *Server) run(PORT string) {
 	s.gin.Run(":" + PORT)
 }
 
-func initRoutes(server *Server) {
-	server.Router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "Base route"})
-	})
-
-	server.Router.GET("/hello", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "hello"})
-	})
-}
-
 func StartServer(PORT string) {
 	server := newServer()
-	initRoutes(server)
+	router.InitRoutes(*server.Router)
 	server.run(PORT)
 }
