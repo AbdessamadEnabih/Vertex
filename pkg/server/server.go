@@ -2,12 +2,14 @@ package server
 
 import (
 	"github.com/AbdessamadEnabih/Vertex/pkg/server/router"
+	"github.com/AbdessamadEnabih/Vertex/pkg/state"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	gin    *gin.Engine
 	Router *gin.RouterGroup
+	state  *state.State
 }
 
 func newServer() *Server {
@@ -16,6 +18,7 @@ func newServer() *Server {
 	return &Server{
 		gin:    engine,
 		Router: engine.Group("/api"),
+		state:  state.NewState(),
 	}
 }
 
