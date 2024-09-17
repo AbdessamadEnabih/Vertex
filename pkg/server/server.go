@@ -1,14 +1,15 @@
 package server
 
 import (
-	"net/http"
-
+	"github.com/AbdessamadEnabih/Vertex/pkg/server/router"
+	"github.com/AbdessamadEnabih/Vertex/pkg/state"
 	"github.com/gin-gonic/gin"
 )
 
 type Server struct {
 	gin    *gin.Engine
 	Router *gin.RouterGroup
+	state  *state.State
 }
 
 func newServer() *Server {
@@ -17,6 +18,7 @@ func newServer() *Server {
 	return &Server{
 		gin:    engine,
 		Router: engine.Group("/api"),
+		state:  state.NewState(),
 	}
 }
 
@@ -25,18 +27,8 @@ func (s *Server) run(PORT string) {
 	s.gin.Run(":" + PORT)
 }
 
-func initRoutes(server *Server) {
-	server.Router.GET("/", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "Base route"})
-	})
-
-	server.Router.GET("/hello", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{"message": "hello"})
-	})
-}
-
 func StartServer(PORT string) {
 	server := newServer()
-	initRoutes(server)
+	router.InitRoutes(*server.Router)
 	server.run(PORT)
 }
