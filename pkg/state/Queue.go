@@ -1,4 +1,4 @@
-package vertex_queue
+package state
 
 func Insert() {
 
