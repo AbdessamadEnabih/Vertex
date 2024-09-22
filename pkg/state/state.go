@@ -3,11 +3,15 @@ package state
 import (
 	"regexp"
 	"sync"
+	"time"
+
+	"github.com/patrickmn/go-cache"
 )
 
 type State struct {
 	Data map[string]interface{}
 	mu   sync.RWMutex
+	cache *cache.Cache
 }
 
 type StateError struct {
@@ -30,6 +34,7 @@ func (e *StateError) Error() string { return e.Message }
 func NewState() *State {
 	return &State{
 		Data: make(map[string]interface{}),
+		cache : cache.New(5*time.Minute, 30*time.Minute),
 	}
 }
 
