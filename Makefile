@@ -40,6 +40,6 @@ docker-build: ## Build Docker image
 	docker build -t vertex:latest .
 
 docker-run: ### Build & Run Vertex with docker
-	docker run --name vertex -p 8080:8080 --rm  --detach vertex:latest
+	docker run --name vertex -p 6480:6480 --rm  --detach vertex:latest
 
 
