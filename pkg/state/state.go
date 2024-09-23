@@ -8,10 +8,14 @@ import (
 	"github.com/patrickmn/go-cache"
 )
 
+const defaultTTL = time.Minute * 60
+const maxAllowedEntries = 100000
+
 type State struct {
-	Data map[string]interface{}
-	mu   sync.RWMutex
-	cache *cache.Cache
+	Data   map[string]interface{}
+	mu     sync.RWMutex
+	cache  *cache.Cache
+	ttlMap map[string]time.Time
 }
 
 type StateError struct {
@@ -33,8 +37,9 @@ func (e *StateError) Error() string { return e.Message }
 
 func NewState() *State {
 	return &State{
-		Data: make(map[string]interface{}),
-		cache : cache.New(5*time.Minute, 30*time.Minute),
+		Data:   make(map[string]interface{}),
+		cache:  cache.New(5*time.Minute, 30*time.Minute),
+		ttlMap: make(map[string]time.Time),
 	}
 }
 
@@ -62,7 +67,6 @@ func validateKey(key string) error {
 }
 
 func (s *State) Set(key string, value interface{}) error {
-	maxAllowedEntries := 100000
 
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -81,6 +85,7 @@ func (s *State) Set(key string, value interface{}) error {
 	}
 
 	s.Data[key] = value
+	s.ttlMap[key] = time.Now().Add(defaultTTL)
 
 	// Check for out-of-memory error
 	if len(s.Data) > maxAllowedEntries {
@@ -124,6 +129,8 @@ func (s *State) Delete(key string) error {
 		return ErrKeyNotFound
 	}
 	delete(s.Data, key)
+	delete(s.TtlMap, key)
+
 	return nil
 }
 
