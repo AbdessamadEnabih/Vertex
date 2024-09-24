@@ -129,7 +129,7 @@ func (s *State) Delete(key string) error {
 		return ErrKeyNotFound
 	}
 	delete(s.Data, key)
-	delete(s.TtlMap, key)
+	delete(s.ttlMap, key)
 
 	return nil
 }
