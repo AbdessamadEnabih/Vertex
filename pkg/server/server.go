@@ -1,8 +1,8 @@
 package server
 
 import (
+	"github.com/AbdessamadEnabih/Vertex/internal/state"
 	"github.com/AbdessamadEnabih/Vertex/pkg/server/router"
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
 	"github.com/gin-gonic/gin"
 )
 
