@@ -150,3 +150,14 @@ func (s *State) Update(key string, value interface{}) error {
 
 	return nil
 }
+
+func (s *State) FlushAll() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.Data = make(map[string]interface{})
+	s.cache.Flush()
+	s.ttlMap = make(map[string]time.Time)
+
+	return nil
+}
