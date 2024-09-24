@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	"github.com/AbdessamadEnabih/Vertex/internal/state"
 )
 
 var State state.State = *state.NewState()
@@ -110,7 +110,6 @@ func TestState_Delete(t *testing.T) {
 		t.Errorf("Expected error 'Key not found' when deleting already deleted key, but got %v", err)
 	}
 }
-
 
 func TestState_Update(t *testing.T) {
 	// Create a new State instance for this test
