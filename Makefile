@@ -31,10 +31,6 @@ test: ## Run the unit test, make test ARGS=location
 lint: ## Lint Go files
 	golangci-lint run ./...
 
-.PHONY: fmt
-fmt: ## Format Go files
-	goimports -w .
-
 .PHONY: docker-build
 docker-build: ## Build Docker image
 	docker build -t vertex:latest .
