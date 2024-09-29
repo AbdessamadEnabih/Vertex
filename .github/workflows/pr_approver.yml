@@ -9,11 +9,24 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      
+    - name: Get PR details
+      id: pr_details
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        script: |
+          const { owner, repo } = context.repo;
+          const { number } = context.payload.number;
+          console.log(`PR Details: Owner=${owner}, Repo=${repo}, Number=${number}`);
+          
     - name: Check if author is repository owner
       id: check_author
       uses: actions/github-script@v6
       with:
-        github-token: ${{secrets.GITHUB_TOKEN}}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const repoOwner = context.repo.owner;
           const repoName = context.repo.repo;
@@ -24,10 +37,10 @@ jobs:
           if (!isOwner) {
             throw new Error('Author is not the repository owner');
           }
-    
+          
     - name: Approve PR
       if: steps.check_author.outputs.is_owner == 'true'
-      uses: actions/create-pull-request-review@v1
+      uses: actions/create-pull-request-review@v3
       with:
         type: APPROVED
         state: APPLIED
