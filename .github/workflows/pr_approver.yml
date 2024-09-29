@@ -46,14 +46,28 @@ jobs:
             echo "The PR author is the repository owner."
           fi
 
+      - name: Get PR number
+        id: pr_details
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            return {
+              pr_number: context.payload.pull_request ? context.payload.pull_request.number : null
+            };
+
       - name: Approve PR
-        if: success()
+        if: success() && steps.pr_details.outputs.pr_number
         uses: actions/github-script@v6
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
             const prNumber = parseInt('${{ steps.pr_details.outputs.pr_number }}'.replace(/"/g, ''));
+
+            if (isNaN(prNumber)) {
+              throw new Error("PR number is not valid.");
+            }
 
             try {
               await github.rest.pulls.createReview({
