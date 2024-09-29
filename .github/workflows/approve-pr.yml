@@ -1,0 +1,30 @@
+name: Approve PR if Author is Owner
+
+on:
+  pull_request:
+    types: [opened]
+
+jobs:
+  check-owner:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Check PR author
+      id: check
+      run: |
+        REPO_OWNER=$(echo ${{ github.repository_owner }})
+        PR_AUTHOR=$(echo ${{ github.event.pull_request.user.login }})
+
+        echo "Repository owner: $REPO_OWNER"
+        echo "PR Author: $PR_AUTHOR"
+
+        if [[ "$PR_AUTHOR" != "$REPO_OWNER" ]]; then
+          echo "The PR author is not the repo owner. Approval not granted."
+          exit 1
+        fi
+
+    - name: Approve PR
+      if: success()
+      uses: hmarr/auto-approve-action@v3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
