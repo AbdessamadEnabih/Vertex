@@ -7,7 +7,7 @@ on:
 jobs:
   approve_pr:
     runs-on: ubuntu-latest
-    
+
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -19,28 +19,45 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
           const { owner, repo } = context.repo;
-          const { number } = context.payload.number;
-          console.log(`PR Details: Owner=${owner}, Repo=${repo}, Number=${number}`);
+          const prAuthor = context.payload.pull_request.user.login;
+          const prNumber = context.payload.pull_request.number;
           
+          console.log(`Owner: ${owner}`);
+          console.log(`PR Author: ${prAuthor}`);
+          console.log(`PR Number: ${prNumber}`);
+
+          // Returning the author and the PR number to use later
+          return {
+            pr_author: prAuthor,
+            pr_number: prNumber,
+            repo_owner: owner
+          };
+
     - name: Check if author is repository owner
       id: check_author
+      run: |
+        echo "PR Author: ${{ steps.pr_details.outputs.pr_author }}"
+        echo "Repository Owner: ${{ steps.pr_details.outputs.repo_owner }}"
+        
+        if [ "${{ steps.pr_details.outputs.pr_author }}" != "${{ steps.pr_details.outputs.repo_owner }}" ]; then
+          echo "The PR author is not the repository owner."
+          exit 1
+        else
+          echo "The PR author is the repository owner."
+        fi
+
+    - name: Approve PR
+      if: success()
       uses: actions/github-script@v6
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         script: |
-          const repoOwner = context.repo.owner;
-          const repoName = context.repo.repo;
-          const prAuthor = context.payload.pull_request.user.login;
+          const { owner, repo } = context.repo;
+          const prNumber = ${{ steps.pr_details.outputs.pr_number }};
           
-          const isOwner = repoOwner === prAuthor || repoName === prAuthor;
-          
-          if (!isOwner) {
-            throw new Error('Author is not the repository owner');
-          }
-          
-    - name: Approve PR
-      if: steps.check_author.outputs.is_owner == 'true'
-      uses: actions/create-pull-request-review@v3
-      with:
-        type: APPROVED
-        state: APPLIED
+          await github.pulls.createReview({
+            owner: owner,
+            repo: repo,
+            pull_number: prNumber,
+            event: 'APPROVE'
+          });
