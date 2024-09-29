@@ -2,7 +2,8 @@ name: Approve PR if Author is Owner
 
 on:
   pull_request_target:
-    types: [opened]
+    branches: ["main"]
+    types: [opened, synchronize]
 
 jobs:
   check-owner:
