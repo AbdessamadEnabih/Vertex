@@ -53,18 +53,16 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const { owner, repo } = context.repo;
-            const prNumber = '${{ steps.pr_details.outputs.pr_number }}';
+            const prNumber = parseInt('${{ steps.pr_details.outputs.pr_number }}'.replace(/"/g, ''));
 
             try {
-              const github = github.getOctokit(process.env.GITHUB_TOKEN);
-              await github.rest.pulls.createReview({
-              owner: owner,
-              repo: repo,
-              pull_number: parseInt(prNumber.replace(/"/g, '')),
-              event: 'APPROVE'
-            });
+              await github.pulls.createReview({
+                owner: owner,
+                repo: repo,
+                pull_number: prNumber,
+                event: 'APPROVE'
+              });
             } catch (error) {
               console.error('Error approving PR:', error);
               throw error;
             }
-
