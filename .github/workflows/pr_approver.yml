@@ -56,7 +56,7 @@ jobs:
             const prNumber = parseInt('${{ steps.pr_details.outputs.pr_number }}'.replace(/"/g, ''));
 
             try {
-              await github.pulls.createReview({
+              await github.rest.pulls.createReview({
                 owner: owner,
                 repo: repo,
                 pull_number: prNumber,
