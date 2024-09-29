@@ -55,9 +55,16 @@ jobs:
             const { owner, repo } = context.repo;
             const prNumber = '${{ steps.pr_details.outputs.pr_number }}';
 
-            await github.pulls.createReview({
+            try {
+              const github = github.getOctokit(process.env.GITHUB_TOKEN);
+              await github.rest.pulls.createReview({
               owner: owner,
               repo: repo,
-              pull_number: prNumber.replace(/"/g, ''),
+              pull_number: parseInt(prNumber.replace(/"/g, '')),
               event: 'APPROVE'
             });
+            } catch (error) {
+              console.error('Error approving PR:', error);
+              throw error;
+            }
+
