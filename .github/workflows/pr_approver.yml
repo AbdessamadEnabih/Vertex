@@ -1,0 +1,33 @@
+name: PR Approver
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  approve_pr:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Check if author is repository owner
+      id: check_author
+      uses: actions/github-script@v6
+      with:
+        github-token: ${{secrets.GITHUB_TOKEN}}
+        script: |
+          const repoOwner = context.repo.owner;
+          const repoName = context.repo.repo;
+          const prAuthor = context.payload.pull_request.user.login;
+          
+          const isOwner = repoOwner === prAuthor || repoName === prAuthor;
+          
+          if (!isOwner) {
+            throw new Error('Author is not the repository owner');
+          }
+    
+    - name: Approve PR
+      if: steps.check_author.outputs.is_owner == 'true'
+      uses: actions/create-pull-request-review@v1
+      with:
+        type: APPROVED
+        state: APPLIED
