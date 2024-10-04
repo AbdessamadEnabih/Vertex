@@ -10,4 +10,3 @@ RUN go build -o .bin/vertex ./cmd/
 
 ENV PATH="/opt/.vertex/.bin:$PATH"
 
-ENTRYPOINT ["vertex","serve"]

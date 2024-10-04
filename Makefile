@@ -9,9 +9,6 @@ help: ## Display this help screen
 .PHONY: run
 run: build ## Run the binary
 	.bin/vertex
-	
-serve: build ## Start the server
-	.bin/vertex serve
 
 .PHONY: build
 build: ## Build the binary
