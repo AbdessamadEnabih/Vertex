@@ -6,7 +6,7 @@ COPY . .
 
 RUN go build -o .bin/vertex ./cmd/
 
-    EXPOSE 6480
+EXPOSE 64800
 
 ENV PATH="/opt/.vertex/.bin:$PATH"
 
