@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/AbdessamadEnabih/Vertex/pkg/cmd"
+	"github.com/AbdessamadEnabih/Vertex/internal/cmd"
 )
 
 func main() {
