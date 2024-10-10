@@ -1,0 +1,22 @@
+# vertex.yaml
+
+server:
+  port: 6379
+  bind: "0.0.0.0"
+
+persistence:
+  enabled: true
+  snapshot_interval: 60
+  append_only: false
+
+state:
+  max_key_age: 7d
+  max_size: 100MB
+  max_allowed_entries: 100000
+
+logging:
+  level: info
+  file: "/var/log/vertex.log"
+  max_size: 10MB
+  max_backups: 3
+  max_age: 7d
