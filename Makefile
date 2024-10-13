@@ -12,7 +12,7 @@ run: build ## Run the binary
 
 .PHONY: build
 build: ## Build the binary
-	go build -o .bin/vertex ./cmd/
+	go build -o .bin/vertex .
 
 .PHONY: test
 test: ## Run the unit test, make test ARGS=location
@@ -27,6 +27,10 @@ test: ## Run the unit test, make test ARGS=location
 .PHONY: lint
 lint: ## Lint Go files
 	golangci-lint run ./...
+
+.PHONY optimize
+optimize: # Optimize structs 
+	betteralign -apply ./...
 
 .PHONY: docker-build
 docker-build: ## Build Docker image
