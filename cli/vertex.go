@@ -1,5 +1,4 @@
-// cmd/vertex.go
-package cmd
+package cli
 
 import (
 	"bufio"
