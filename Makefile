@@ -28,8 +28,8 @@ test: ## Run the unit test, make test ARGS=location
 lint: ## Lint Go files
 	golangci-lint run ./...
 
-.PHONY optimize
-optimize: # Optimize structs 
+.PHONY: optimize
+optimize: ## Optimize structs 
 	betteralign -apply ./...
 
 .PHONY: docker-build
