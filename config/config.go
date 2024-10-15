@@ -1,10 +1,13 @@
 package config
 
 import (
-	"gopkg.in/yaml.v2"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"reflect"
+
+	"gopkg.in/yaml.v2"
 )
 
 type Config struct {
@@ -15,19 +18,20 @@ type Config struct {
 		MaxAge     string `yaml:"max_age"`
 		MaxBackups int    `yaml:"max_backups"`
 	} `yaml:"logging"`
-	Server struct {
-		Bind string `yaml:"bind"`
-		Port int    `yaml:"port"`
-	} `yaml:"server"`
 	State struct {
 		MaxKeyAge         string `yaml:"max_key_age"`
 		MaxSize           string `yaml:"max_size"`
 		MaxAllowedEntries int    `yaml:"max_allowed_entries"`
 	} `yaml:"state"`
+	Server struct {
+		Bind string `yaml:"bind"`
+		Port int    `yaml:"port"`
+	} `yaml:"server"`
 	Persistence struct {
-		SnapshotInterval int  `yaml:"snapshot_interval"`
-		Enabled          bool `yaml:"enabled"`
-		AppendOnly       bool `yaml:"append_only"`
+		Path             string `yaml:"path"`
+		SnapshotInterval int    `yaml:"snapshot_interval"`
+		Enabled          bool   `yaml:"enabled"`
+		AppendOnly       bool   `yaml:"append_only"`
 	} `yaml:"persistence"`
 }
 
@@ -45,4 +49,17 @@ func LoadConfig() *Config {
 		return nil
 	}
 	return &c
+}
+
+func GetConfigByField(section string) (interface{}, error) {
+	var config Config = *LoadConfig()
+
+	v := reflect.ValueOf(config).Elem()
+	field := v.FieldByName(section)
+
+	if !field.IsValid() {
+		return nil, fmt.Errorf("field %s not found", section)
+	}
+
+	return field.Interface(), nil
 }
