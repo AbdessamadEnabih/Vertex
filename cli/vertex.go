@@ -48,39 +48,42 @@ var getAllCmd = &cobra.Command{
 var GlobalState *state.State
 
 func Execute(globalState *state.State) {
-    GlobalState = globalState
-    rootCmd.AddCommand(setCmd, getCmd, deleteCmd, flushCmd, getAllCmd)
+	GlobalState = globalState
+	rootCmd.AddCommand(setCmd, getCmd, deleteCmd, flushCmd, getAllCmd)
 
-    // Start interactive command loop
-    reader := bufio.NewReader(os.Stdin)
-    for {
-        fmt.Print("vertex> ")
+	// Start interactive command loop
+	reader := bufio.NewReader(os.Stdin)
+	for {
+		fmt.Print("vertex> ")
 
-        input, err := reader.ReadString('\n')
-        if err != nil {
-            fmt.Println("Error reading input:", err)
-            continue
-        }
-        
-        input = strings.TrimSpace(input)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading input:", err)
+			continue
+		}
 
-        if input == "exit" {
-            fmt.Println("Exiting Vertex...")
-            break
-        }
+		input = strings.TrimSpace(input)
 
-        // Split the input into command and arguments
-        args := strings.Split(input, " ")
-        // Set the arguments for the root command
-        rootCmd.SetArgs(args)
+		if input == "" {
+			continue
+		}
 
-        // Execute the root command
-        if err := rootCmd.Execute(); err != nil {
-            fmt.Printf("Error executing command: %v\n", err)
-        }
-    }
+		if input == "exit" {
+			fmt.Println("Exiting Vertex...")
+			break
+		}
+
+		// Split the input into command and arguments
+		args := strings.Split(input, " ")
+		// Set the arguments for the root command
+		rootCmd.SetArgs(args)
+
+		// Execute the root command
+		if err := rootCmd.Execute(); err != nil {
+			fmt.Printf("Error executing command: %v\n", err)
+		}
+	}
 }
-
 
 func set(cmd *cobra.Command, args []string) {
 	if len(args) != 2 {
