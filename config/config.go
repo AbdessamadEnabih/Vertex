@@ -52,14 +52,19 @@ func LoadConfig() *Config {
 }
 
 func GetConfigByField(section string) (interface{}, error) {
-	var config Config = *LoadConfig()
+    var config Config = *LoadConfig()
 
-	v := reflect.ValueOf(config).Elem()
-	field := v.FieldByName(section)
-
-	if !field.IsValid() {
-		return nil, fmt.Errorf("field %s not found", section)
-	}
-
-	return field.Interface(), nil
+    v := reflect.ValueOf(config)
+    if v.Kind() != reflect.Struct {
+        return nil, fmt.Errorf("config is not a struct")
+    }
+    f := v.FieldByName(section)
+    if !f.IsValid() {
+        return nil, fmt.Errorf("field %s not found", section)
+    }
+    if f.Kind() != reflect.Struct {
+        return nil, fmt.Errorf("field %s is not a struct", section)
+    }
+    
+    return f.Interface(), nil
 }
