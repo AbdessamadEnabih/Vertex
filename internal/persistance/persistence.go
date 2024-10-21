@@ -52,7 +52,7 @@ func writeInStateFile(state *state.State, filepath string) error {
 	}
 	defer file.Close()
 
-	jsonData, err := json.Marshal(state.GetAll())
+	jsonData, err := json.Marshal(state)
 	if err != nil {
 		log.Printf("Error marshaling state to JSON: %s", err)
 		return err
@@ -87,17 +87,17 @@ func writeInStateFile(state *state.State, filepath string) error {
 	return nil
 }
 
-func readStateFromFile(filepath string) {
+func readStateFromFile(filepath string) (*state.State, error) {
 	encodedData, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
-		return
+		return nil, err
 	}
 
 	compressedData, err := base64.StdEncoding.DecodeString(string(encodedData))
 	if err != nil {
 		log.Printf("Error decoding base64 data: %s", err)
-		return
+		return nil, err
 	}
 
 	compressedBuffer := bytes.NewBuffer(compressedData)
@@ -105,7 +105,7 @@ func readStateFromFile(filepath string) {
 	gzipReader, err := gzip.NewReader(compressedBuffer)
 	if err != nil {
 		log.Printf("Error creating gzip reader: %s", err)
-		return
+		return nil, err
 	}
 	defer gzipReader.Close()
 
@@ -114,13 +114,16 @@ func readStateFromFile(filepath string) {
 	_, err = io.Copy(&decompressedBuffer, gzipReader)
 	if err != nil {
 		log.Printf("Error decompressing data: %s", err)
-		return
+		return nil, err
 	}
 
-	fmt.Print(string(decompressedBuffer.Bytes()))
+	var savedState state.State
+	json.Unmarshal(decompressedBuffer.Bytes(), &savedState)
+
+	return &savedState, nil
 }
 
-func Load() {
+func Load() (*state.State, error) {
 	persistence_config, err := config.GetConfigByField("Persistence")
 	if err != nil {
 		log.Printf("Error while loading Persistence configuration : %s", err)
@@ -134,14 +137,17 @@ func Load() {
 	_, err = os.Stat(statepath)
 	if os.IsNotExist(err) {
 		log.Printf("State not found: %s", err)
+		return state.NewState(), nil
 	}
 	if err == nil {
-
-		readStateFromFile(statepath)
-
+		savedState, err := readStateFromFile(statepath)
+		if err != nil {
+			log.Printf("Error reading state file: %s", err)
+			return state.NewState(), err
+		}
+		return savedState, nil
 	} else {
 		log.Printf("Error checking file existence: %s", err)
-		return
+		return state.NewState(), err
 	}
-
 }
