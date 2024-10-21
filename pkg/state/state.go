@@ -3,31 +3,31 @@ package state
 import "github.com/AbdessamadEnabih/Vertex/internal/state"
 
 type State struct {
-	internalState *state.State
+	InternalState *state.State
 }
 
 func NewState() *State {
 	return &State{
-		internalState: state.NewState(),
+		InternalState: state.NewState(),
 	}
 }
 
 func (s *State) Set(key string, value interface{}) error {
-	return s.internalState.Set(key, value)
+	return s.InternalState.Set(key, value)
 }
 
 func (s *State) Get(key string) (interface{}, error) {
-	return s.internalState.Get(key)
+	return s.InternalState.Get(key)
 }
 
 func (s *State) Delete(key string) error {
-	return s.internalState.Delete(key)
+	return s.InternalState.Delete(key)
 }
 
 func (s *State) GetAll() map[string]interface{} {
-	return s.internalState.GetAll()
+	return s.InternalState.GetAll()
 }
 
 func (s *State) FlushAll() error {
-	return s.internalState.FlushAll()
+	return s.InternalState.FlushAll()
 }
