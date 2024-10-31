@@ -54,7 +54,7 @@ func Execute(globalState *state.State) {
 	// Start interactive command loop
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Print("vertex> ")
+		fmt.Print("vertex > ")
 
 		input, err := reader.ReadString('\n')
 		if err != nil {
