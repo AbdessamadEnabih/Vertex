@@ -12,7 +12,7 @@ run: build ## Run the binary
 
 .PHONY: build
 build: ## Build the binary
-	go build -o .bin/vertex .
+	go build -ldflags="-extldflags=-static" -o .bin/vertex ./cli/vertex.go
 
 .PHONY: test
 test: ## Run the unit test, make test ARGS=location
@@ -34,9 +34,9 @@ optimize: ## Optimize structs
 
 .PHONY: docker-build
 docker-build: ## Build Docker image
-	docker build -t vertex:latest .
+	docker build -f docker/Dockerfile -t vertex:latest .
 
 docker-run: ### Build & Run Vertex with docker
-	docker run --name vertex -p 6480:6480 --rm  --detach vertex:latest
+	docker run --name vertex -p 6380:6380 --rm  --detach vertex:latest
 
 
