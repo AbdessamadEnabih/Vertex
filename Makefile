@@ -12,7 +12,7 @@ run: build ## Run the binary
 
 .PHONY: build
 build: ## Build the binary
-	go build -o .bin/vertex .
+	go build -ldflags="-extldflags=-static" -o .bin/vertex ./cli/vertex.go
 
 .PHONY: test
 test: ## Run the unit test, make test ARGS=location
