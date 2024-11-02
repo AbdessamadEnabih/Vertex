@@ -53,7 +53,7 @@ func getConfigPath() string {
 	// Determine config path based on environment
 	switch vertexEnv {
 	case "production":
-		configPath = "/app/config/config.yaml"
+		configPath = "/etc/vertex/config.yaml"
 	case "development":
 		// Use the current working directory to form the path
 		if cwd, err := os.Getwd(); err == nil {
