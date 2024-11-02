@@ -25,7 +25,8 @@ RUN addgroup -S vertexgroup && adduser -S vertexuser -G vertexgroup
 
 # Set environment variables for runtime configurations
 ENV VERTEX_ENV=production \
-    VERTEX_PORT=6379
+    VERTEX_PORT=6380 \
+    VERTEX_CONFIG_PATH=/etc/vertex/config.yaml
 
 # Set up necessary directories, permissions, and config files
 RUN mkdir -p /var/lib/vertex /etc/vertex && \
@@ -34,12 +35,14 @@ RUN mkdir -p /var/lib/vertex /etc/vertex && \
 # Copy server and CLI binaries from the builder stage
 COPY --from=builder /app/vertex-server /usr/local/bin/vertex-server
 COPY --from=builder /app/vertex /usr/local/bin/vertex
-
-# Copy the entrypoint script from the docker directory
+COPY --from=builder /app/config/config.yaml /etc/vertex/config.yaml
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
+# Set execute permissions for the binaries
+RUN chmod +x /usr/local/bin/vertex-server /usr/local/bin/vertex /usr/local/bin/entrypoint.sh
+
 # Change permissions of the entrypoint script
-RUN chmod 755 /usr/local/bin/entrypoint.sh
+RUN chmod 775 /usr/local/bin/entrypoint.sh
 
 # Change to a non-root user
 USER vertexuser
@@ -49,7 +52,7 @@ EXPOSE 6380
 
 # Health check to monitor Vertex status
 HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-    CMD netstat -an | grep :6379 || exit 1
+    CMD netstat -an | grep :6380 || exit 1
 
 # Use entrypoint script to start the server by default
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
