@@ -9,8 +9,10 @@ import (
 	"net"
 	"reflect"
 	"strings"
+	"time"
 
 	"github.com/AbdessamadEnabih/Vertex/config"
+	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
 )
 
@@ -43,6 +45,17 @@ func (s *Server) Start() error {
 	defer ln.Close()
 
 	log.Printf("TCP server listening on %s:%d\n", address, port)
+
+	ticker := time.NewTicker(30 * time.Second)
+
+	defer ticker.Stop()
+
+	go func() {
+		for range ticker.C {
+			persistance.Save(s.state)
+			log.Printf("State Saved")
+		}
+	}()
 
 	for {
 		conn, err := ln.Accept()
