@@ -7,7 +7,7 @@ persistence:
   enabled: true
   snapshot_interval: 60
   append_only: false
-  path: "/data"
+  path: "/etc/vertex/data"
 
 state:
   max_key_age: 7d

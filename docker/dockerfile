@@ -29,13 +29,13 @@ ENV VERTEX_ENV=production \
     VERTEX_CONFIG_PATH=/etc/vertex/config.yaml
 
 # Set up necessary directories, permissions, and config files
-RUN mkdir -p /var/lib/vertex /etc/vertex && \
-    chown -R vertexuser:vertexgroup /var/lib/vertex /etc/vertex
+RUN mkdir -p /var/lib/vertex /etc/vertex /etc/vertex/data && \
+    chown -R vertexuser:vertexgroup /var/lib/vertex /etc/vertex /etc/vertex/data
 
 # Copy server and CLI binaries from the builder stage
 COPY --from=builder /app/vertex-server /usr/local/bin/vertex-server
 COPY --from=builder /app/vertex /usr/local/bin/vertex
-COPY --from=builder /app/config/config.yaml /etc/vertex/config.yaml
+COPY --from=builder /app/config/config_prod.yaml /etc/vertex/config.yaml
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Set execute permissions for the binaries
