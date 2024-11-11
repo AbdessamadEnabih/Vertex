@@ -1,4 +1,4 @@
-package cli
+package main
 
 import (
 	"bufio"
@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
 	"github.com/spf13/cobra"
 )
@@ -47,8 +48,13 @@ var getAllCmd = &cobra.Command{
 
 var GlobalState *state.State
 
-func Execute(globalState *state.State) {
-	GlobalState = globalState
+func main()  {
+	Execute()
+}
+
+func Execute() {
+	GlobalState, _= persistance.Load()
+
 	rootCmd.AddCommand(setCmd, getCmd, deleteCmd, flushCmd, getAllCmd)
 
 	// Start interactive command loop
