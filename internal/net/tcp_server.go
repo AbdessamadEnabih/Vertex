@@ -34,7 +34,7 @@ func getPort() int {
 }
 
 func (s *Server) Start() error {
-	address := "localhost"
+	address := "0.0.0.0"
 	port := getPort()
 
 	fmt.Print(port)
