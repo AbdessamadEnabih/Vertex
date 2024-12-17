@@ -34,7 +34,7 @@ func getPort() int {
 }
 
 func (s *Server) Start() error {
-	address := "localhost"
+	address := "0.0.0.0"
 	port := getPort()
 
 	fmt.Print(port)
@@ -92,12 +92,12 @@ func (s *Server) handleConnection(conn net.Conn) {
 			if err == nil {
 				err = s.state.Set(key, value)
 				if err != nil {
-					writer.WriteString("ERR\r\n")
+					writer.WriteString(formatErrorString(msg, err.Error()))
 				} else {
 					writer.WriteString("OK\r\n")
 				}
 			} else {
-				writer.WriteString("ERR\r\n")
+				writer.WriteString(formatErrorString(msg, err.Error()))
 			}
 
 		case strings.HasPrefix(msg, "GET "):
@@ -129,7 +129,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		case msg == "FLUSH":
 			err := s.state.FlushAll()
 			if err != nil {
-				writer.WriteString("ERROR\r\n")
+				writer.WriteString(printErrorMessage(msg, err.Error()))
 			} else {
 				writer.WriteString("OK\r\n")
 			}
@@ -148,4 +148,9 @@ func parseKeyValue(msg string) (string, string, error) {
 		return "", "", errors.New("invalid format")
 	}
 	return parts[1], parts[2], nil
+}
+
+
+func formatErrorString(command string, err string) string{
+	return fmt.Sprintf("Error in %s : %s", command, err)
 }
