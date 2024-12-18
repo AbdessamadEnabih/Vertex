@@ -129,7 +129,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 		case msg == "FLUSH":
 			err := s.state.FlushAll()
 			if err != nil {
-				writer.WriteString(printErrorMessage(msg, err.Error()))
+				writer.WriteString(formatErrorString(msg, err.Error()))
 			} else {
 				writer.WriteString("OK\r\n")
 			}
