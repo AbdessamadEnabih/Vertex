@@ -1,7 +1,7 @@
 # vertex.yaml
 server:
   port: 6380
-  bind: "0.0.0.0"
+  adress: "0.0.0.0"
 
 persistence:
   enabled: true

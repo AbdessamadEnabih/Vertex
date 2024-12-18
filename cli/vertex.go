@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
@@ -49,15 +50,15 @@ var getAllCmd = &cobra.Command{
 var GlobalState *state.State
 
 func main()  {
-	Execute()
+	GlobalState, _= persistance.Load()
+	Execute(GlobalState)
 }
 
-func Execute() {
-	GlobalState, _= persistance.Load()
-
+func Execute(GlobalState *state.State) {
 	rootCmd.AddCommand(setCmd, getCmd, deleteCmd, flushCmd, getAllCmd)
 
-	// Start interactive command loop
+	go refreshState(GlobalState)
+
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		fmt.Print("vertex > ")
@@ -89,6 +90,22 @@ func Execute() {
 			fmt.Printf("Error executing command: %v\n", err)
 		}
 	}
+
+	defer persistance.Save(GlobalState)
+}
+
+func refreshState(GlobalState *state.State) {
+    ticker := time.NewTicker(5 * time.Second)
+    defer ticker.Stop()
+
+    for range ticker.C {
+        state, err := persistance.Load()
+        if err != nil {
+            fmt.Printf("Error refreshing state: %v\n", err)
+        } else {
+            GlobalState = state
+        }
+    }
 }
 
 func set(cmd *cobra.Command, args []string) {
