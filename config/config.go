@@ -24,7 +24,7 @@ type Config struct {
 		MaxAllowedEntries int    `yaml:"max_allowed_entries"`
 	} `yaml:"state"`
 	Server struct {
-		Bind string `yaml:"bind"`
+		Adress string `yaml:"adress"`
 		Port int    `yaml:"port"`
 	} `yaml:"server"`
 	Persistence struct {
