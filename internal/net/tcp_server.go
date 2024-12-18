@@ -24,18 +24,17 @@ func NewServer(state *state.State) *Server {
 	return &Server{state: state}
 }
 
-func getPort() int {
+func getServerConfiguration() (string, int) {
 	server_config, err := config.GetConfigByField("Server")
 	if err != nil {
 		log.Printf("Error while loading Server configuration: %s", err)
-		return 6380
+		return "0.0.0.0", 6380
 	}
-	return int(reflect.ValueOf(server_config).FieldByName("Port").Int())
+	return reflect.ValueOf(server_config).FieldByName("Adress").String(), int(reflect.ValueOf(server_config).FieldByName("Port").Int())
 }
 
 func (s *Server) Start() error {
-	address := "0.0.0.0"
-	port := getPort()
+	address, port := getServerConfiguration()
 
 	fmt.Print(port)
 	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
@@ -150,7 +149,6 @@ func parseKeyValue(msg string) (string, string, error) {
 	return parts[1], parts[2], nil
 }
 
-
-func formatErrorString(command string, err string) string{
+func formatErrorString(command string, err string) string {
 	return fmt.Sprintf("Error in %s : %s", command, err)
 }
