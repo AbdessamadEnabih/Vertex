@@ -1,10 +1,11 @@
 package state
 
 import (
-	"github.com/patrickmn/go-cache"
 	"regexp"
 	"sync"
 	"time"
+
+	"github.com/patrickmn/go-cache"
 )
 
 const defaultTTL = time.Minute * 60
@@ -70,6 +71,14 @@ func (s *State) Set(key string, value interface{}) error {
 	if _, exists := s.Data[key]; exists {
 		return ErrDuplicateKey
 	}
+
+	if s.Data == nil {
+        s.Data = make(map[string]interface{})
+    }
+	if s.ttlMap == nil {
+		s.ttlMap = make(map[string]time.Time)
+	}
+	
 	s.Data[key] = value
 	s.ttlMap[key] = time.Now().Add(defaultTTL)
 	// Check for out-of-memory error
@@ -106,7 +115,10 @@ func (s *State) Delete(key string) error {
 		return ErrKeyNotFound
 	}
 	delete(s.Data, key)
-	delete(s.ttlMap, key)
+
+	if s.ttlMap != nil {
+		delete(s.ttlMap, key)
+	}
 	return nil
 }
 func (s *State) Update(key string, value interface{}) error {
@@ -125,7 +137,14 @@ func (s *State) FlushAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.Data = make(map[string]interface{})
-	s.cache.Flush()
-	s.ttlMap = make(map[string]time.Time)
+
+	if s.cache != nil {
+		s.cache.Flush()
+	}
+
+	if s.ttlMap != nil {
+		s.ttlMap = make(map[string]time.Time)
+	}
+
 	return nil
 }
