@@ -12,22 +12,25 @@ jobs:
     steps:
     - name: Check PR author
       id: check
-      run: |
-        REPO_OWNER=$(echo ${{ github.repository_owner }})
-        PR_AUTHOR=$(echo ${{ github.event.pull_request.user.login }})
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const repoOwner = context.repo.owner;
+          const prAuthor = context.payload.pull_request.user.login;
 
-        echo "Repository owner: $REPO_OWNER"
-        echo "PR Author: $PR_AUTHOR"
+          console.log(`Repository owner: ${repoOwner}`);
+          console.log(`PR Author: ${prAuthor}`);
 
-        if [[ "$PR_AUTHOR" != "$REPO_OWNER" ]]; then
-          echo "The PR author is not the repo owner. Approval not granted."
-          exit 1
-        fi
+          if (prAuthor !== repoOwner) {
+            core.setFailed("The PR author is not the repo owner. Approval not granted.");
+          }
 
     - name: Approve PR
       if: success()
       uses: hmarr/auto-approve-action@v3
       with:
-        github-token: ${{ secrets.BOT_PAT }}
+        github-token: ${{ secrets.GITHUB_TOKEN }}
 
-        
+    - name: Notify if not approved
+      if: failure()
+      run: echo "The PR author is not the repo owner. Approval not granted."
