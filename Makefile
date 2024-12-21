@@ -10,6 +10,10 @@ help: ## Display this help screen
 run: build ## Run the binary
 	.bin/vertex
 
+.PHONY: run-server
+run-server: ## Run the server
+	go run ./cmd/server/main.go
+
 .PHONY: build
 build: ## Build the binary
 	go build -ldflags="-extldflags=-static" -o .bin/vertex ./cli/vertex.go
