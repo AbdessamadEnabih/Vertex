@@ -18,8 +18,6 @@ func main() {
 		return
 	}
 
-	// cli.Execute(GlobalState)
-
 	server := net.NewServer(GlobalState)
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
