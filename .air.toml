@@ -43,18 +43,3 @@ tmp_dir = "tmp"
 
 [misc]
 clean_on_exit = false
-
-[misc]
-clean_on_exit = false
-
-[proxy]
-enabled = false
-proxy_port = 0
-
-[screen]
-clear_on_rebuild = false
-keep_scroll = true
-
-[screen]
-clear_on_rebuild = false
-keep_scroll = true
