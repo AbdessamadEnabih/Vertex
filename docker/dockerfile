@@ -12,25 +12,23 @@ RUN go mod download
 COPY . .
 
 # Build server binary from main.go
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o vertex-server main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o vertex-server ./server/main.go
 
 # Build CLI binary (adjust the file path for the CLI entry point, e.g., vertex.go)
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o vertex ./cli/vertex.go
 
 # Stage 2: Prepare a minimal runtime image
-FROM alpine:latest
+FROM alpine:3.14
 
 # Create a user for running Vertex, for security purposes
-RUN addgroup -S vertexgroup && adduser -S vertexuser -G vertexgroup
+RUN addgroup -S vertexgroup && adduser -S vertexuser -G vertexgroup && \
+    mkdir -p /var/lib/vertex /etc/vertex /etc/vertex/data && \
+    chown -R vertexuser:vertexgroup /var/lib/vertex /etc/vertex /etc/vertex/data
 
 # Set environment variables for runtime configurations
 ENV VERTEX_ENV=production \
     VERTEX_PORT=6380 \
     VERTEX_CONFIG_PATH=/etc/vertex/config.yaml
-
-# Set up necessary directories, permissions, and config files
-RUN mkdir -p /var/lib/vertex /etc/vertex /etc/vertex/data && \
-    chown -R vertexuser:vertexgroup /var/lib/vertex /etc/vertex /etc/vertex/data
 
 # Copy server and CLI binaries from the builder stage
 COPY --from=builder /app/vertex-server /usr/local/bin/vertex-server
@@ -38,21 +36,11 @@ COPY --from=builder /app/vertex /usr/local/bin/vertex
 COPY --from=builder /app/config/config_prod.yaml /etc/vertex/config.yaml
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
-# Set execute permissions for the binaries
+# Set execute permissions for the binaries and entrypoint script
 RUN chmod +x /usr/local/bin/vertex-server /usr/local/bin/vertex /usr/local/bin/entrypoint.sh
-
-# Change permissions of the entrypoint script
-RUN chmod 775 /usr/local/bin/entrypoint.sh
 
 # Change to a non-root user
 USER vertexuser
 
-# Expose the configured TCP port
-EXPOSE 6380
-
-# Health check to monitor Vertex status
-HEALTHCHECK --interval=30s --timeout=5s --start-period=5s \
-    CMD netstat -an | grep :6380 || exit 1
-
-# Use entrypoint script to start the server by default
+# Set the entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
