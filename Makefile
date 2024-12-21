@@ -11,9 +11,6 @@ help: ## Show this help
 .PHONY: setup
 setup: ## Setup the project
 	go mod download
-	go get -u github.com/daixiang0/gci
-	go get -u github.com/daixiang0/betteralign
-	go get -u github.com/golangci/golangci-lint/cmd/golangci-lint
 
 .PHONY: build
 build: build-cli build-server
