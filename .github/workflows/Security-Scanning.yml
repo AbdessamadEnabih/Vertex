@@ -2,18 +2,18 @@ name: Security Scanning
 
 on:
   pull_request:
-    branches: ["main"]
+    branches: [ "main" ]
 
 jobs:
   scan:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@v0.2.0
-        with:
-          scan-type: "fs"
-          severity: "HIGH,CRITICAL"
+    - name: Run Trivy vulnerability scanner
+      uses: aquasecurity/trivy-action@v0.11.0
+      with:
+        scan-type: 'fs'
+        severity: 'HIGH,CRITICAL'
