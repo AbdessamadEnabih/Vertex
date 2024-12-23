@@ -57,14 +57,14 @@ func getConfigPath() string {
 	case "development":
 		// Use the current working directory to form the path
 		if cwd, err := os.Getwd(); err == nil {
-			configPath = filepath.Join(cwd, "config", "config.yaml")
+			configPath = filepath.Join(cwd, "configs", "config.yaml")
 		} else {
 			// Fallback path if unable to get working directory
-			configPath = "config/config.yaml"
+			configPath = "configs/config.yaml"
 		}
 	default:
 		// Default fallback if env is unknown
-		configPath = "config/config.yaml"
+		configPath = "configs/config.yaml"
 	}
 
 	return configPath
