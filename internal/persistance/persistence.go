@@ -12,11 +12,11 @@ import (
 	"path/filepath"
 	"reflect"
 
-	"github.com/AbdessamadEnabih/Vertex/config"
+	"github.com/AbdessamadEnabih/Vertex/pkg/config"
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
 )
 
-func Save(state *state.State) {
+func get_state_path() string {
 	persistence_config, err := config.GetConfigByField("Persistence")
 	if err != nil {
 		log.Printf("Error while loading Persistence configuration : %s", err)
@@ -24,9 +24,14 @@ func Save(state *state.State) {
 
 	dir, _ := os.Getwd()
 
-	datapath := filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String())
-	statepath := filepath.Join(datapath, "state.data")
-	_, err = os.Stat(statepath)
+	return filepath.Join(filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String()), "state.data")
+
+}
+
+func Save(state *state.State) {
+
+	statepath := get_state_path()
+	_, err := os.Stat(statepath)
 	if err == nil {
 		writeInStateFile(state, statepath)
 	} else if os.IsNotExist(err) {
@@ -124,17 +129,9 @@ func readStateFromFile(filepath string) (*state.State, error) {
 }
 
 func Load() (*state.State, error) {
-	persistence_config, err := config.GetConfigByField("Persistence")
-	if err != nil {
-		log.Printf("Error while loading Persistence configuration : %s", err)
-	}
-
-	dir, _ := os.Getwd()
-
-	datapath := filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String())
-	statepath := filepath.Join(datapath, "state.data")
-
-	_, err = os.Stat(statepath)
+	statepath := get_state_path()
+	
+	_, err := os.Stat(statepath)
 	if os.IsNotExist(err) {
 		log.Printf("State not found: %s", err)
 		return state.NewState(), nil
