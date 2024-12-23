@@ -16,7 +16,7 @@ state:
 
 logging:
   level: info
-  file: "/var/log/vertex.log"
+  path: "/var/log/"
   max_size: 10MB
   max_backups: 3
   max_age: 7d

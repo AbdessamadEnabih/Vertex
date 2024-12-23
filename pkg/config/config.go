@@ -13,7 +13,7 @@ import (
 type Config struct {
 	Logging struct {
 		Level      string `yaml:"level"`
-		File       string `yaml:"file"`
+		Path       string `yaml:"path"`
 		MaxSize    string `yaml:"max_size"`
 		MaxAge     string `yaml:"max_age"`
 		MaxBackups int    `yaml:"max_backups"`
