@@ -7,39 +7,46 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"log"
 	"os"
 	"path/filepath"
 	"reflect"
 
-	"github.com/AbdessamadEnabih/Vertex/config"
+	"github.com/AbdessamadEnabih/Vertex/pkg/config"
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
 )
 
-func Save(state *state.State) {
+
+
+func get_state_path() string {
 	persistence_config, err := config.GetConfigByField("Persistence")
 	if err != nil {
-		log.Printf("Error while loading Persistence configuration : %s", err)
+		vertex_log.Log("Error getting persistence config: "+err.Error(), "ERROR")
 	}
 
 	dir, _ := os.Getwd()
 
-	datapath := filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String())
-	statepath := filepath.Join(datapath, "state.data")
-	_, err = os.Stat(statepath)
+	return filepath.Join(filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String()), "state.data")
+
+}
+
+func Save(state *state.State) {
+
+	statepath := get_state_path()
+	_, err := os.Stat(statepath)
 	if err == nil {
 		writeInStateFile(state, statepath)
 	} else if os.IsNotExist(err) {
 		file, err := os.Create(statepath)
 		if err != nil {
-			log.Printf("Error creating file: %s", err)
+			vertex_log.Log("Error creating file: "+err.Error(), "ERROR")
 			return
 		}
 		defer file.Close()
 
 		writeInStateFile(state, statepath)
 	} else {
-		log.Printf("Error checking file existence: %s", err)
+		vertex_log.Log("Error checking file existence: "+err.Error(), "ERROR")	
 		return
 	}
 }
@@ -47,14 +54,14 @@ func Save(state *state.State) {
 func writeInStateFile(state *state.State, filepath string) error {
 	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
-		log.Printf("Error opening file for writing: %s", err)
+		vertex_log.Log("Error opening file for writing: "+err.Error(), "ERROR")
 		return err
 	}
 	defer file.Close()
 
 	jsonData, err := json.Marshal(state)
 	if err != nil {
-		log.Printf("Error marshaling state to JSON: %s", err)
+		vertex_log.Log("Error marshaling state to JSON: "+err.Error(), "ERROR")
 		return err
 	}
 
@@ -66,13 +73,13 @@ func writeInStateFile(state *state.State, filepath string) error {
 
 	_, err = gzipWriter.Write(data)
 	if err != nil {
-		log.Printf("Error compressing data: %s", err)
+		vertex_log.Log("Error compressing data: "+err.Error(), "ERROR")
 		return err
 	}
 
 	err = gzipWriter.Close()
 	if err != nil {
-		log.Printf("Error closing gzip writer: %s", err)
+		vertex_log.Log("Error closing gzip writer: "+err.Error(), "ERROR")
 		return err
 	}
 
@@ -80,7 +87,7 @@ func writeInStateFile(state *state.State, filepath string) error {
 
 	_, err = file.WriteString(encodedData)
 	if err != nil {
-		log.Printf("Error writing state to file: %s", err)
+		vertex_log.Log("Error writing state to file: "+err.Error(), "ERROR")
 		return err
 	}
 
@@ -96,7 +103,7 @@ func readStateFromFile(filepath string) (*state.State, error) {
 
 	compressedData, err := base64.StdEncoding.DecodeString(string(encodedData))
 	if err != nil {
-		log.Printf("Error decoding base64 data: %s", err)
+		vertex_log.Log("Error decoding base64 data: "+err.Error(), "ERROR")
 		return nil, err
 	}
 
@@ -104,7 +111,7 @@ func readStateFromFile(filepath string) (*state.State, error) {
 
 	gzipReader, err := gzip.NewReader(compressedBuffer)
 	if err != nil {
-		log.Printf("Error creating gzip reader: %s", err)
+		vertex_log.Log("Error creating gzip reader: "+err.Error(), "ERROR")
 		return nil, err
 	}
 	defer gzipReader.Close()
@@ -113,7 +120,7 @@ func readStateFromFile(filepath string) (*state.State, error) {
 	var decompressedBuffer bytes.Buffer
 	_, err = io.Copy(&decompressedBuffer, gzipReader)
 	if err != nil {
-		log.Printf("Error decompressing data: %s", err)
+		vertex_log.Log("Error decompressing data: "+err.Error(), "ERROR")
 		return nil, err
 	}
 
@@ -124,30 +131,22 @@ func readStateFromFile(filepath string) (*state.State, error) {
 }
 
 func Load() (*state.State, error) {
-	persistence_config, err := config.GetConfigByField("Persistence")
-	if err != nil {
-		log.Printf("Error while loading Persistence configuration : %s", err)
-	}
+	statepath := get_state_path()
 
-	dir, _ := os.Getwd()
-
-	datapath := filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String())
-	statepath := filepath.Join(datapath, "state.data")
-
-	_, err = os.Stat(statepath)
+	_, err := os.Stat(statepath)
 	if os.IsNotExist(err) {
-		log.Printf("State not found: %s", err)
+		vertex_log.Log("State not found: "+err.Error(), "ERROR")
 		return state.NewState(), nil
 	}
 	if err == nil {
 		savedState, err := readStateFromFile(statepath)
 		if err != nil {
-			log.Printf("Error reading state file: %s", err)
+			vertex_log.Log("Error reading state file: "+err.Error(), "ERROR")
 			return state.NewState(), err
 		}
 		return savedState, nil
 	} else {
-		log.Printf("Error checking file existence: %s", err)
+		vertex_log.Log("Error checking file existence: "+err.Error(), "ERROR")
 		return state.NewState(), err
 	}
 }
