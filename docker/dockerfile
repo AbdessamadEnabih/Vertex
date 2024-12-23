@@ -33,7 +33,7 @@ ENV VERTEX_ENV=production \
 # Copy server and CLI binaries from the builder stage
 COPY --from=builder /app/vertex-server /usr/local/bin/vertex-server
 COPY --from=builder /app/vertex /usr/local/bin/vertex
-COPY --from=builder /app/config/config_prod.yaml /etc/vertex/config.yaml
+COPY --from=builder /app/configs/config_prod.yaml /etc/vertex/config.yaml
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 # Set execute permissions for the binaries and entrypoint script
@@ -41,6 +41,8 @@ RUN chmod +x /usr/local/bin/vertex-server /usr/local/bin/vertex /usr/local/bin/e
 
 # Change to a non-root user
 USER vertexuser
+
+EXPOSE 6380
 
 # Set the entrypoint
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
