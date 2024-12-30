@@ -6,6 +6,7 @@ import (
 	"os"
 	"strings"
 	"time"
+	"os/signal"
 
 	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
 	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
@@ -71,6 +72,18 @@ func Execute(GlobalState *state.State) {
     
 	// Create a new reader to read input from the standard input (stdin).
 	reader := bufio.NewReader(os.Stdin)
+
+	// Handle the interrupt signal (Ctrl+C) to exit the program gracefully.
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
+
+	// Listen for the interrupt signal in a separate goroutine.
+	go func() {	
+		for range signalChannel {
+			os.Exit(0)
+		}
+	}()
+
 	for {
 		fmt.Print("vertex > ")
 
