@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
 	"time"
 
@@ -104,6 +105,17 @@ func completer(d prompt.Document) []prompt.Suggest {
 // executor is a function that executes the input command. It is called when the user presses
 func executor(input string) {
 	input = strings.TrimSpace(input)
+
+	// Handle the interrupt signal (Ctrl+C) to exit the program gracefully.
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt)
+
+	// Listen for the interrupt signal in a separate goroutine.
+	go func() {	
+		for range signalChannel {
+			os.Exit(0)
+		}
+	}()
 
 	if input == "" {
 		return
