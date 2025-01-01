@@ -133,10 +133,7 @@ func executor(input string) {
 	rootCmd.SetArgs(args)
 
 	// Execute the root command
-	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("Unknown Command: %v\n", err)
-		fmt.Printf("Run 'vertex --help' for usage.\n")
-	}
+	if err := rootCmd.Execute(); err != nil {}
 }
 
 // Execute is the main function that runs the CLI application. It reads input from the user
