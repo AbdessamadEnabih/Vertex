@@ -13,59 +13,67 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var rootCmd = &cobra.Command{
-	Use:   "vertex",
-	Short: "Run vertex commands",
-}
+// Define the root command and subcommands
+var (
+	rootCmd = &cobra.Command{
+		Use:   "vertex",
+		Short: "Run vertex commands",
+	}
 
-var setCmd = &cobra.Command{
-	Use:   "set",
-	Short: "Set a key-value pair",
-	Run:   set,
-}
+	setCmd = &cobra.Command{
+		Use:   "set",
+		Short: "Set a key-value pair",
+		Run:   set,
+	}
 
-var getCmd = &cobra.Command{
-	Use:   "get",
-	Short: "Get a value by key",
-	Run:   get,
-}
+	getCmd = &cobra.Command{
+		Use:   "get",
+		Short: "Get a value by key",
+		Run:   get,
+	}
 
-var deleteCmd = &cobra.Command{
-	Use:   "delete",
-	Short: "Delete a key",
-	Run:   delete,
-}
+	deleteCmd = &cobra.Command{
+		Use:   "delete",
+		Short: "Delete a key",
+		Run:   delete,
+	}
 
-var flushCmd = &cobra.Command{
-	Use:   "flush",
-	Short: "Flush the entire state",
-	Run:   flush,
-}
+	flushCmd = &cobra.Command{
+		Use:   "flush",
+		Short: "Flush the entire state",
+		Run:   flush,
+	}
 
-var getAllCmd = &cobra.Command{
-	Use:   "all",
-	Short: "Retrieve all keys and values",
-	Run:   getAll,
-}
+	getAllCmd = &cobra.Command{
+		Use:   "all",
+		Short: "Retrieve all keys and values",
+		Run:   getAll,
+	}
+)
 
+// GlobalState is a pointer to the global state of the application. It is used to store
+// key-value pairs in memory.
 var GlobalState *state.State
 
+// refreshInterval is the interval at which the global state is refreshed from persistence.
 const refreshInterval = 60
 
-func main() {
+func init() {
 	// Load the global state from persistence. The function returns two values - the loaded
 	// state and an error. In this case, the underscore `_` is used to ignore the error value,
 	// assuming that the operation will succeed without any errors.
 	GlobalState, _ = persistance.Load()
 
-	// Execute the CLI commands with the loaded global state.
-	Execute(GlobalState)
+	// Add the subcommands to the root command
+	rootCmd.AddCommand(setCmd)
+	rootCmd.AddCommand(getCmd)
+	rootCmd.AddCommand(deleteCmd)
+	rootCmd.AddCommand(flushCmd)
+	rootCmd.AddCommand(getAllCmd)
 }
 
+// Execute is the main function that runs the CLI application. It reads input from the user
 func Execute(GlobalState *state.State) {
-	// Add subcommands to the root command.
-	rootCmd.AddCommand(setCmd, getCmd, deleteCmd, flushCmd, getAllCmd)
-
 	// Start a goroutine to periodically refresh the global state.
 	go refreshState()
     
@@ -129,11 +137,17 @@ func refreshState() {
 	}
 }
 
-func set(cmd *cobra.Command, args []string) {
-	if len(args) != 2 {
-		cmd.Usage()
+func valiateArgs(args []string, expectedArgs int) {
+	if len(args) != expectedArgs {
+		fmt.Printf("Expected %d arguments, got %d\n", expectedArgs, len(args))
 		return
 	}
+}
+
+// The following functions are the handlers for the CLI commands.
+func set(cmd *cobra.Command, args []string) {
+	valiateArgs(args, 2)
+
 	err := GlobalState.Set(args[0], args[1])
 	if err != nil {
 		fmt.Printf("Unable to set the key %v: %v\n", args[0], err)
@@ -141,10 +155,8 @@ func set(cmd *cobra.Command, args []string) {
 }
 
 func get(cmd *cobra.Command, args []string) {
-	if len(args) != 1 {
-		cmd.Usage()
-		return
-	}
+	valiateArgs(args, 1)
+
 	value, err := GlobalState.Get(args[0])
 	if err != nil {
 		fmt.Printf("Failed to retrieve the key %s :  %v\n", args[0], err)
@@ -154,10 +166,8 @@ func get(cmd *cobra.Command, args []string) {
 }
 
 func delete(cmd *cobra.Command, args []string) {
-	if len(args) != 1 {
-		cmd.Usage()
-		return
-	}
+	valiateArgs(args, 1)
+
 	err := GlobalState.Delete(args[0])
 	if err != nil {
 		fmt.Printf("Failed to delete key %s : %v\n", args[0], err)
@@ -174,4 +184,9 @@ func flush(cmd *cobra.Command, args []string) {
 func getAll(cmd *cobra.Command, args []string) {
 	values := GlobalState.GetAll()
 	fmt.Println("All keys:", values)
+}
+
+func main() {
+	// Execute the CLI commands with the loaded global state.
+	Execute(GlobalState)
 }
