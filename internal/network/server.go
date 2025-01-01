@@ -1,4 +1,4 @@
-package net
+package network
 
 import (
 	"bufio"
@@ -36,7 +36,6 @@ func getServerConfiguration() (string, int) {
 func (s *Server) Start() error {
 	address, port := getServerConfiguration()
 
-	fmt.Print(port)
 	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
 	if err != nil {
 		return err
@@ -66,6 +65,8 @@ func (s *Server) Start() error {
 		go s.handleConnection(conn)
 	}
 }
+
+
 
 func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
