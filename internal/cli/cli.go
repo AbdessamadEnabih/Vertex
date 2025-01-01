@@ -67,7 +67,7 @@ var (
 var GlobalState *state.State
 
 // refreshInterval is the interval at which the global state is refreshed from persistence.
-const refreshInterval = 60
+const refreshInterval = 60 * time.Second
 
 func init() {
 	// Load the global state from persistence. The function returns two values - the loaded
@@ -125,7 +125,7 @@ func Execute(GlobalState *state.State) {
 
 		// Execute the root command
 		if err := rootCmd.Execute(); err != nil {
-			fmt.Printf("Unkown Command: %v\n", err)
+			fmt.Printf("Unknown Command: %v\n", err)
 			fmt.Printf("Run 'vertex --help' for usage.\n")
 		}
 	}
@@ -135,7 +135,7 @@ func Execute(GlobalState *state.State) {
 
 // The `refreshState` function periodically loads and updates the global state from persistence.
 func refreshState() {
-	ticker := time.NewTicker(refreshInterval * time.Second)
+	ticker := time.NewTicker(refreshInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {
@@ -148,7 +148,7 @@ func refreshState() {
 	}
 }
 
-func valiateArgs(args []string, expectedArgs int) {
+func validateArgs(args []string, expectedArgs int) {
 	if len(args) != expectedArgs {
 		fmt.Printf("Expected %d arguments, got %d\n", expectedArgs, len(args))
 		return
@@ -157,7 +157,7 @@ func valiateArgs(args []string, expectedArgs int) {
 
 // The following functions are the handlers for the CLI commands.
 func set(cmd *cobra.Command, args []string) {
-	valiateArgs(args, 2)
+	validateArgs(args, 2)
 
 	err := GlobalState.Set(args[0], args[1])
 	if err != nil {
@@ -166,7 +166,7 @@ func set(cmd *cobra.Command, args []string) {
 }
 
 func get(cmd *cobra.Command, args []string) {
-	valiateArgs(args, 1)
+	validateArgs(args, 1)
 
 	value, err := GlobalState.Get(args[0])
 	if err != nil {
@@ -177,7 +177,7 @@ func get(cmd *cobra.Command, args []string) {
 }
 
 func delete(cmd *cobra.Command, args []string) {
-	valiateArgs(args, 1)
+	validateArgs(args, 1)
 
 	err := GlobalState.Delete(args[0])
 	if err != nil {
