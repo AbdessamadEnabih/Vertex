@@ -23,30 +23,41 @@ var (
 	setCmd = &cobra.Command{
 		Use:   "set",
 		Short: "Set a key-value pair",
+		Example: `set key value`,
+		ValidArgs: []string{"key", "value"},
+		Args: cobra.ExactArgs(2),
 		Run:   set,
 	}
 
 	getCmd = &cobra.Command{
 		Use:   "get",
 		Short: "Get a value by key",
+		Example: `get key`,
+		ValidArgs: []string{"key"},
+		Args: cobra.ExactArgs(1),
 		Run:   get,
 	}
 
 	deleteCmd = &cobra.Command{
 		Use:   "delete",
 		Short: "Delete a key",
+		Example: `delete key`,
+		ValidArgs: []string{"key"},
+		Args: cobra.ExactArgs(1),
 		Run:   delete,
 	}
 
 	flushCmd = &cobra.Command{
 		Use:   "flush",
 		Short: "Flush the entire state",
+		Example: `flush`,
 		Run:   flush,
 	}
 
 	getAllCmd = &cobra.Command{
 		Use:   "all",
 		Short: "Retrieve all keys and values",
+		Example: `all`,
 		Run:   getAll,
 	}
 )
