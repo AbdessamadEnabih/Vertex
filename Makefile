@@ -17,7 +17,7 @@ build: build-cli build-server
 
 .PHONY: build-cli
 build-cli: ## Build the CLI binary
-	go build -ldflags="-extldflags=-static" -o .bin/vertex ./cli/vertex.go
+	go build -ldflags="-extldflags=-static" -o .bin/vertex ./internal/cli/cli.go
 
 .PHONY: build-server
 build-server: ## Build the server binary
@@ -29,7 +29,7 @@ run-cli: build-cli ## Run the CLI binary
 
 .PHONY: run-cli-dev
 run-cli-dev: ## Run the CLI for development
-	go run ./cli/vertex.go
+	go run ./internal/cli/cli.go
 
 .PHONY: run-server
 run-server: build-server ## Run the server binary
