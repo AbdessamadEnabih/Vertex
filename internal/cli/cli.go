@@ -49,14 +49,14 @@ func completer(d prompt.Document) []prompt.Suggest {
 
 	// Only show suggestions if no space is typed yet
 	if !strings.Contains(input, " ") {
-		commands := []prompt.Suggest{
-			{Text: "set", Description: "Set a key-value pair"},
-			{Text: "get", Description: "Get a value by key"},
-			{Text: "delete", Description: "Delete a key"},
-			{Text: "flush", Description: "Flush the entire state"},
-			{Text: "all", Description: "Retrieve all keys and values"},
-			{Text: "exit", Description: "Exit the program"},
+		commands := []prompt.Suggest{}
+
+		for _, cmd := range rootCmd.Commands() {
+			commands = append(commands, prompt.Suggest{Text: cmd.Use, Description: cmd.Short})
 		}
+
+		commands = append(commands, prompt.Suggest{Text: "exit", Description: "Exit the program"})
+
 		return prompt.FilterHasPrefix(commands, w, true)
 	}
 
@@ -67,7 +67,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 // executor is a function that executes the input command. It is called when the user presses
 func executor(input string) {
 	input = strings.TrimSpace(input)
-	
+
 	if input == "" {
 		return
 	}
@@ -130,7 +130,7 @@ func main() {
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, syscall.SIGTERM)
-	
+
 	go func() {
 		<-c
 		persistance.Save(GlobalState)
