@@ -5,8 +5,10 @@ import (
 	"os"
 	"os/signal"
 	"strings"
+	"syscall"
 	"time"
 
+	"github.com/AbdessamadEnabih/Vertex/internal/cli/commands"
 	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
 	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
 	"github.com/AbdessamadEnabih/Vertex/pkg/state"
@@ -15,53 +17,10 @@ import (
 )
 
 // Define the root command and subcommands
-var (
-	rootCmd = &cobra.Command{
-		Use:   "vertex",
-		Short: "Run vertex commands",
-	}
-
-	setCmd = &cobra.Command{
-		Use:       "set",
-		Short:     "Set a key-value pair",
-		Example:   `set key value`,
-		ValidArgs: []string{"key", "value"},
-		Args:      cobra.ExactArgs(2),
-		Run:       set,
-	}
-
-	getCmd = &cobra.Command{
-		Use:       "get",
-		Short:     "Get a value by key",
-		Example:   `get key`,
-		ValidArgs: []string{"key"},
-		Args:      cobra.ExactArgs(1),
-		Run:       get,
-	}
-
-	deleteCmd = &cobra.Command{
-		Use:       "delete",
-		Short:     "Delete a key",
-		Example:   `delete key`,
-		ValidArgs: []string{"key"},
-		Args:      cobra.ExactArgs(1),
-		Run:       delete,
-	}
-
-	flushCmd = &cobra.Command{
-		Use:     "flush",
-		Short:   "Flush the entire state",
-		Example: `flush`,
-		Run:     flush,
-	}
-
-	getAllCmd = &cobra.Command{
-		Use:     "all",
-		Short:   "Retrieve all keys and values",
-		Example: `all`,
-		Run:     getAll,
-	}
-)
+var rootCmd = &cobra.Command{
+	Use:   "vertex",
+	Short: "Run vertex commands",
+}
 
 // GlobalState is a pointer to the global state of the application. It is used to store
 // key-value pairs in memory.
@@ -70,31 +29,36 @@ var GlobalState *state.State
 // refreshInterval is the interval at which the global state is refreshed from persistence.
 const refreshInterval = 60 * time.Second
 
+// init initializes the CLI by loading the global state and adding the commands to the root command.
 func init() {
-	// Load the global state from persistence. The function returns two values - the loaded
-	// state and an error. In this case, the underscore `_` is used to ignore the error value,
-	// assuming that the operation will succeed without any errors.
 	GlobalState, _ = persistance.Load()
-
-	// Add the subcommands to the root command
-	rootCmd.AddCommand(setCmd, getCmd, deleteCmd, flushCmd, getAllCmd)
+	rootCmd.AddCommand(
+		commands.NewGetAllCmd(GlobalState),
+		commands.NewGetCmd(GlobalState),
+		commands.NewSetCmd(GlobalState),
+		commands.NewUpdateCmd(GlobalState),
+		commands.NewDeleteCmd(GlobalState),
+		commands.NewFlushCmd(GlobalState),
+	)
 }
 
 // completer is a function that returns suggestions for the prompt based on the input text.
 func completer(d prompt.Document) []prompt.Suggest {
+	// Get the word before the cursor and the text before the cursor
 	w := d.GetWordBeforeCursor()
 	input := d.TextBeforeCursor()
 
 	// Only show suggestions if no space is typed yet
 	if !strings.Contains(input, " ") {
-		commands := []prompt.Suggest{
-			{Text: "set", Description: "Set a key-value pair"},
-			{Text: "get", Description: "Get a value by key"},
-			{Text: "delete", Description: "Delete a key"},
-			{Text: "flush", Description: "Flush the entire state"},
-			{Text: "all", Description: "Retrieve all keys and values"},
-			{Text: "exit", Description: "Exit the program"},
+		commands := []prompt.Suggest{}
+
+		// Add the commands to the suggestions
+		for _, cmd := range rootCmd.Commands() {
+			commands = append(commands, prompt.Suggest{Text: cmd.Use, Description: cmd.Short})
 		}
+
+		commands = append(commands, prompt.Suggest{Text: "exit", Description: "Exit the program"})
+
 		return prompt.FilterHasPrefix(commands, w, true)
 	}
 
@@ -105,17 +69,6 @@ func completer(d prompt.Document) []prompt.Suggest {
 // executor is a function that executes the input command. It is called when the user presses
 func executor(input string) {
 	input = strings.TrimSpace(input)
-
-	// Handle the interrupt signal (Ctrl+C) to exit the program gracefully.
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt)
-
-	// Listen for the interrupt signal in a separate goroutine.
-	go func() {	
-		for range signalChannel {
-			os.Exit(0)
-		}
-	}()
 
 	if input == "" {
 		return
@@ -133,7 +86,9 @@ func executor(input string) {
 	rootCmd.SetArgs(args)
 
 	// Execute the root command
-	if err := rootCmd.Execute(); err != nil {}
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Execute is the main function that runs the CLI application. It reads input from the user
@@ -141,6 +96,7 @@ func Execute(GlobalState *state.State) {
 	// Start a goroutine to periodically refresh the global state.
 	go refreshState()
 
+	// Start the prompt
 	p := prompt.New(
 		executor,
 		completer,
@@ -171,56 +127,17 @@ func refreshState() {
 	}
 }
 
-func validateArgs(args []string, expectedArgs int) {
-	if len(args) != expectedArgs {
-		fmt.Printf("Expected %d arguments, got %d\n", expectedArgs, len(args))
-		return
-	}
-}
-
-// The following functions are the handlers for the CLI commands.
-func set(cmd *cobra.Command, args []string) {
-	validateArgs(args, 2)
-
-	err := GlobalState.Set(args[0], args[1])
-	if err != nil {
-		fmt.Printf("Unable to set the key %v: %v\n", args[0], err)
-	}
-}
-
-func get(cmd *cobra.Command, args []string) {
-	validateArgs(args, 1)
-
-	value, err := GlobalState.Get(args[0])
-	if err != nil {
-		fmt.Printf("Failed to retrieve the key %s :  %v\n", args[0], err)
-	} else {
-		fmt.Println("Value:", value)
-	}
-}
-
-func delete(cmd *cobra.Command, args []string) {
-	validateArgs(args, 1)
-
-	err := GlobalState.Delete(args[0])
-	if err != nil {
-		fmt.Printf("Failed to delete key %s : %v\n", args[0], err)
-	}
-}
-
-func flush(cmd *cobra.Command, args []string) {
-	err := GlobalState.FlushAll()
-	if err != nil {
-		fmt.Printf("Failed to flush data: %v\n", err)
-	}
-}
-
-func getAll(cmd *cobra.Command, args []string) {
-	values := GlobalState.GetAll()
-	fmt.Println("All keys:", values)
-}
-
 func main() {
-	// Execute the CLI commands with the loaded global state.
+	// Handle SIGINT and SIGTERM signals to save the state before exiting
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt)
+	signal.Notify(c, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		persistance.Save(GlobalState)
+		os.Exit(1)
+	}()
+
 	Execute(GlobalState)
 }
