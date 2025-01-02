@@ -44,6 +44,7 @@ func init() {
 
 // completer is a function that returns suggestions for the prompt based on the input text.
 func completer(d prompt.Document) []prompt.Suggest {
+	// Get the word before the cursor and the text before the cursor
 	w := d.GetWordBeforeCursor()
 	input := d.TextBeforeCursor()
 
@@ -51,6 +52,7 @@ func completer(d prompt.Document) []prompt.Suggest {
 	if !strings.Contains(input, " ") {
 		commands := []prompt.Suggest{}
 
+		// Add the commands to the suggestions
 		for _, cmd := range rootCmd.Commands() {
 			commands = append(commands, prompt.Suggest{Text: cmd.Use, Description: cmd.Short})
 		}
