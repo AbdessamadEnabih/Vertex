@@ -28,6 +28,10 @@ func (s *State) GetAll() map[string]interface{} {
 	return s.InternalState.GetAll()
 }
 
+func (s *State) Update(key string, value interface{}) error {
+	return s.InternalState.Update(key, value)
+}
+
 func (s *State) FlushAll() error {
 	return s.InternalState.FlushAll()
 }
