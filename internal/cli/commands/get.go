@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Get(globaleState *state.State) *cobra.Command {
+func NewGetCmd(globaleState *state.State) *cobra.Command {
 	return &cobra.Command{
 		Use:       "get",
 		Short:     "Get a key-value pair",

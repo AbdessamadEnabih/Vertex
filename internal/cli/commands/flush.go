@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Flush(globaleState *state.State) *cobra.Command {
+func NewFlushCmd(globaleState *state.State) *cobra.Command {
 	return &cobra.Command{
 		Use:     "flush",
 		Short:   "Flush the entire state",

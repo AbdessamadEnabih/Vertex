@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Update(globaleState *state.State) *cobra.Command {
+func NewUpdateCmd(globaleState *state.State) *cobra.Command {
 	return &cobra.Command{
 		Use:       "update",
 		Short:     "Update a key-value pair",

@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func Delete(globaleState *state.State) *cobra.Command {
+func NewDeleteCmd(globaleState *state.State) *cobra.Command {
 	return &cobra.Command{
 		Use:       "delete",
 		Short:     "Delete a key-value pair",

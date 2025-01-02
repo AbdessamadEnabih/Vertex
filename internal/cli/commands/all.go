@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func All(globaleState *state.State) *cobra.Command {
+func NewGetAllCmd(globaleState *state.State) *cobra.Command {
 	return &cobra.Command{
 		Use:       "set",
 		Short:     "Set a key-value pair",
