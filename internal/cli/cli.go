@@ -32,11 +32,12 @@ const refreshInterval = 60 * time.Second
 func init() {
 	GlobalState, _ = persistance.Load()
 	rootCmd.AddCommand(
-		commands.Get(GlobalState),
-		commands.Set(GlobalState),
-		commands.Delete(GlobalState),
-		commands.Flush(GlobalState),
-		commands.All(GlobalState),
+		commands.NewGetCmd(GlobalState),
+		commands.NewSetCmd(GlobalState),
+		commands.NewDeleteCmd(GlobalState),
+		commands.NewFlushCmd(GlobalState),
+		commands.NewGetAllCmd(GlobalState),
+		commands.NewUpdateCmd(GlobalState),
 	)
 }
 
