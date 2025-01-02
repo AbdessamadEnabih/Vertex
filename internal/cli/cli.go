@@ -133,7 +133,9 @@ func executor(input string) {
 	rootCmd.SetArgs(args)
 
 	// Execute the root command
-	if err := rootCmd.Execute(); err != nil {}
+	if err := rootCmd.Execute(); err != nil {
+		fmt.Println(err)
+	}
 }
 
 // Execute is the main function that runs the CLI application. It reads input from the user
