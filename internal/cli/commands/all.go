@@ -9,9 +9,9 @@ import (
 
 func NewGetAllCmd(globaleState *state.State) *cobra.Command {
 	return &cobra.Command{
-		Use:       "set",
-		Short:     "Set a key-value pair",
-		Example:   `set key value`,
+		Use: 	 "all",
+		Short:   "Get all keys",
+		Example: `all`,
 		ValidArgs: []string{"key", "value"},
 		Args:      cobra.ExactArgs(2),
 		Run: func(cmd *cobra.Command, args []string) {
