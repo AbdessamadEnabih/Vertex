@@ -2,11 +2,14 @@ package network
 
 import (
 	"bufio"
+	"crypto/tls"
+	"crypto/x509"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -20,25 +23,60 @@ type Server struct {
 	state *state.State
 }
 
+// NewServer creates a new server instance
 func NewServer(state *state.State) *Server {
 	return &Server{state: state}
 }
 
-func getServerConfiguration() (string, int) {
+// getServerConfiguration returns the server configuration from the config file
+func getServerConfiguration() (string, int, bool) {
+	// Get the server configuration from the config file
 	server_config, err := config.GetConfigByField("Server")
 	if err != nil {
 		log.Printf("Error while loading Server configuration: %s", err)
-		return "0.0.0.0", 6380
+		return "0.0.0.0", 6380, false
 	}
-	return reflect.ValueOf(server_config).FieldByName("Adress").String(), int(reflect.ValueOf(server_config).FieldByName("Port").Int())
+	return reflect.ValueOf(server_config).FieldByName("Adress").String(), int(reflect.ValueOf(server_config).FieldByName("Port").Int()), reflect.ValueOf(server_config).FieldByName("SSL").Bool()
+}
+
+// generateTLSConfig generates a TLS configuration for the server
+func generateTLSConfig() *tls.Config {
+	cert, err := tls.LoadX509KeyPair("certs/server.crt", "certs/server.key")
+	if err != nil {
+		log.Fatalf("Error loading certificate: %v", err)
+	}
+
+	caCert, err := os.ReadFile("certs/ca.crt")
+	if err != nil {
+		log.Fatalf("Error loading CA certificate: %v", err)
+	}
+	caCertPool := x509.NewCertPool()
+	caCertPool.AppendCertsFromPEM(caCert)
+
+	return &tls.Config{
+		Certificates: []tls.Certificate{cert},
+		ClientCAs:    caCertPool,
+		ClientAuth:   tls.RequireAndVerifyClientCert,
+	}
 }
 
 func (s *Server) Start() error {
-	address, port := getServerConfiguration()
+	address, port, ssl := getServerConfiguration()
+	// Load the state from the persistance
+	var ln net.Listener
+	var ln_err error
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
-	if err != nil {
-		return err
+	if ssl {
+		log.Println("Starting TCP server with SSL")
+		tlsConfig := generateTLSConfig()
+		ln, ln_err = tls.Listen("tcp", fmt.Sprintf("%s:%d", address, port), tlsConfig)
+	} else {
+		log.Println("Starting TCP server")
+		ln, ln_err = net.Listen("tcp", fmt.Sprintf("%s:%d", address, port))
+	}
+
+	if ln_err != nil {
+		return ln_err
 	}
 	defer ln.Close()
 
@@ -51,7 +89,6 @@ func (s *Server) Start() error {
 	go func() {
 		for range ticker.C {
 			persistance.Save(s.state)
-			log.Printf("State Saved")
 		}
 	}()
 
@@ -66,8 +103,7 @@ func (s *Server) Start() error {
 	}
 }
 
-
-
+// handleConnection handles the connection from the client
 func (s *Server) handleConnection(conn net.Conn) {
 	defer conn.Close()
 
