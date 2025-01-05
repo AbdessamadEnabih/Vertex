@@ -26,6 +26,7 @@ type Config struct {
 	Server struct {
 		Adress string `yaml:"adress"`
 		Port int    `yaml:"port"`
+		SSL bool   `yaml:"ssl"`
 	} `yaml:"server"`
 	Persistence struct {
 		Path             string `yaml:"path"`
