@@ -10,7 +10,7 @@ persistence:
   append_only: false
   path: "/data"
 
-state:
+store:
   max_key_age: 7d
   max_size: 100MB
   max_allowed_entries: 100000
