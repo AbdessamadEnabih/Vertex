@@ -12,13 +12,13 @@ import (
 	"reflect"
 
 	"github.com/AbdessamadEnabih/Vertex/pkg/config"
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
 )
 
 
 
-func get_state_path() string {
+func get_datastore_path() string {
 	persistence_config, err := config.GetConfigByField("Persistence")
 	if err != nil {
 		vertex_log.Log("Error getting persistence config: "+err.Error(), "ERROR")
@@ -26,32 +26,32 @@ func get_state_path() string {
 
 	dir, _ := os.Getwd()
 
-	return filepath.Join(filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String()), "state.data")
+	return filepath.Join(filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String()), "datastore.data")
 
 }
 
-func Save(state *state.State) {
+func Save(datastore *datastore.DataStore) {
 
-	statepath := get_state_path()
-	_, err := os.Stat(statepath)
+	datastorepath := get_datastore_path()
+	_, err := os.Stat(datastorepath)
 	if err == nil {
-		writeInStateFile(state, statepath)
+		writeInDataStoreFile(datastore, datastorepath)
 	} else if os.IsNotExist(err) {
-		file, err := os.Create(statepath)
+		file, err := os.Create(datastorepath)
 		if err != nil {
 			vertex_log.Log("Error creating file: "+err.Error(), "ERROR")
 			return
 		}
 		defer file.Close()
 
-		writeInStateFile(state, statepath)
+		writeInDataStoreFile(datastore, datastorepath)
 	} else {
 		vertex_log.Log("Error checking file existence: "+err.Error(), "ERROR")	
 		return
 	}
 }
 
-func writeInStateFile(state *state.State, filepath string) error {
+func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error {
 	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		vertex_log.Log("Error opening file for writing: "+err.Error(), "ERROR")
@@ -59,9 +59,9 @@ func writeInStateFile(state *state.State, filepath string) error {
 	}
 	defer file.Close()
 
-	jsonData, err := json.Marshal(state)
+	jsonData, err := json.Marshal(datastore)
 	if err != nil {
-		vertex_log.Log("Error marshaling state to JSON: "+err.Error(), "ERROR")
+		vertex_log.Log("Error marshaling datastore to JSON: "+err.Error(), "ERROR")
 		return err
 	}
 
@@ -87,14 +87,14 @@ func writeInStateFile(state *state.State, filepath string) error {
 
 	_, err = file.WriteString(encodedData)
 	if err != nil {
-		vertex_log.Log("Error writing state to file: "+err.Error(), "ERROR")
+		vertex_log.Log("Error writing datastore to file: "+err.Error(), "ERROR")
 		return err
 	}
 
 	return nil
 }
 
-func readStateFromFile(filepath string) (*state.State, error) {
+func readDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
 	encodedData, err := os.ReadFile(filepath)
 	if err != nil {
 		fmt.Println("Error reading file:", err)
@@ -124,29 +124,29 @@ func readStateFromFile(filepath string) (*state.State, error) {
 		return nil, err
 	}
 
-	var savedState state.State
-	json.Unmarshal(decompressedBuffer.Bytes(), &savedState)
+	var savedDataStore datastore.DataStore
+	json.Unmarshal(decompressedBuffer.Bytes(), &savedDataStore)
 
-	return &savedState, nil
+	return &savedDataStore, nil
 }
 
-func Load() (*state.State, error) {
-	statepath := get_state_path()
+func Load() (*datastore.DataStore, error) {
+	datastorepath := get_datastore_path()
 
-	_, err := os.Stat(statepath)
+	_, err := os.Stat(datastorepath)
 	if os.IsNotExist(err) {
-		vertex_log.Log("State not found: "+err.Error(), "ERROR")
-		return state.NewState(), nil
+		vertex_log.Log("DataStore not found: "+err.Error(), "ERROR")
+		return datastore.NewDataStore(), nil
 	}
 	if err == nil {
-		savedState, err := readStateFromFile(statepath)
+		savedDataStore, err := readDataStoreFromFile(datastorepath)
 		if err != nil {
-			vertex_log.Log("Error reading state file: "+err.Error(), "ERROR")
-			return state.NewState(), err
+			vertex_log.Log("Error reading datastore file: "+err.Error(), "ERROR")
+			return datastore.NewDataStore(), err
 		}
-		return savedState, nil
+		return savedDataStore, nil
 	} else {
 		vertex_log.Log("Error checking file existence: "+err.Error(), "ERROR")
-		return state.NewState(), err
+		return datastore.NewDataStore(), err
 	}
 }
