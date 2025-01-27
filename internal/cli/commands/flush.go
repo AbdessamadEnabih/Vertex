@@ -3,17 +3,17 @@ package commands
 import (
 	"fmt"
 
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	"github.com/spf13/cobra"
 )
 
-func NewFlushCmd(globaleState *state.State) *cobra.Command {
+func NewFlushCmd(globaledatastore *datastore.DataStore) *cobra.Command {
 	return &cobra.Command{
 		Use:     "flush",
-		Short:   "Flush the entire state",
+		Short:   "Flush the entire datastore",
 		Example: `flush`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := globaleState.FlushAll()
+			err := globaledatastore.FlushAll()
 			if err != nil {
 				fmt.Printf("Failed to flush data: %v\n", err)
 			}

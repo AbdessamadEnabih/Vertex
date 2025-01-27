@@ -3,11 +3,11 @@ package commands
 import (
 	"fmt"
 
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	"github.com/spf13/cobra"
 )
 
-func NewSetCmd(globaleState *state.State) *cobra.Command {
+func NewSetCmd(globaledatastore *datastore.DataStore) *cobra.Command {
 	return &cobra.Command{
 		Use:       "set",
 		Short:     "Set a key-value pair",
@@ -17,7 +17,7 @@ func NewSetCmd(globaleState *state.State) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			key := args[0]
 			value := args[1]
-			err := globaleState.Set(key, value)
+			err := globaledatastore.Set(key, value)
 			if err != nil {
 				fmt.Printf("Unable to set the key %v: %v\n", args[0], err)
 			}

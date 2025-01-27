@@ -18,7 +18,7 @@ type Config struct {
 		MaxAge     string `yaml:"max_age"`
 		MaxBackups int    `yaml:"max_backups"`
 	} `yaml:"logging"`
-	State struct {
+	Store struct {
 		MaxKeyAge         string `yaml:"max_key_age"`
 		MaxSize           string `yaml:"max_size"`
 		MaxAllowedEntries int    `yaml:"max_allowed_entries"`

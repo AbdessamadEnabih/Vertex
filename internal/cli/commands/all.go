@@ -3,11 +3,11 @@ package commands
 import (
 	"fmt"
 
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	"github.com/spf13/cobra"
 )
 
-func NewGetAllCmd(globaleState *state.State) *cobra.Command {
+func NewGetAllCmd(globaleState *datastore.DataStore) *cobra.Command {
 	return &cobra.Command{
 		Use: 	 "all",
 		Short:   "Get all keys",

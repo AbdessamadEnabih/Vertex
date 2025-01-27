@@ -1,4 +1,4 @@
-package state
+package datastore
 
 import (
 	"regexp"
@@ -11,30 +11,30 @@ import (
 const defaultTTL = time.Minute * 60
 const maxAllowedEntries = 100000
 
-type State struct {
+type DataStore struct {
 	Data   map[string]interface{}
 	cache  *cache.Cache
 	ttlMap map[string]time.Time
 	mu     sync.RWMutex
 }
-type StateError struct {
+type DataStoreError struct {
 	Cause   error
 	Message string
 }
 
 // Declared Errors
 var (
-	ErrOutOfMemory          = &StateError{Message: "Out of memory"}
-	ErrEmptyKey             = &StateError{Message: "Empty key is not allowed"}
-	ErrNilValue             = &StateError{Message: "Nil value is not allowed"}
-	ErrKeyNotFound          = &StateError{Message: "Key not found"}
-	ErrDuplicateKey         = &StateError{Message: "Key already exists"}
-	ErrSpecialCharactersKey = &StateError{Message: "Key with special characters is not allowed"}
+	ErrOutOfMemory          = &DataStoreError{Message: "Out of memory"}
+	ErrEmptyKey             = &DataStoreError{Message: "Empty key is not allowed"}
+	ErrNilValue             = &DataStoreError{Message: "Nil value is not allowed"}
+	ErrKeyNotFound          = &DataStoreError{Message: "Key not found"}
+	ErrDuplicateKey         = &DataStoreError{Message: "Key already exists"}
+	ErrSpecialCharactersKey = &DataStoreError{Message: "Key with special characters is not allowed"}
 )
 
-func (e *StateError) Error() string { return e.Message }
-func NewState() *State {
-	return &State{
+func (e *DataStoreError) Error() string { return e.Message }
+func NewDataStore() *DataStore {
+	return &DataStore{
 		Data:   make(map[string]interface{}),
 		cache:  cache.New(5*time.Minute, 30*time.Minute),
 		ttlMap: make(map[string]time.Time),
@@ -58,7 +58,7 @@ func validateKey(key string) error {
 	}
 	return nil
 }
-func (s *State) Set(key string, value interface{}) error {
+func (s *DataStore) Set(key string, value interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := validateKey(key); err != nil {
@@ -88,7 +88,7 @@ func (s *State) Set(key string, value interface{}) error {
 	}
 	return nil
 }
-func (s *State) Get(key string) (interface{}, error) {
+func (s *DataStore) Get(key string) (interface{}, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	if err := validateKey(key); err != nil {
@@ -100,12 +100,12 @@ func (s *State) Get(key string) (interface{}, error) {
 	}
 	return value, nil
 }
-func (s *State) GetAll() map[string]interface{} {
+func (s *DataStore) GetAll() map[string]interface{} {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	return s.Data
 }
-func (s *State) Delete(key string) error {
+func (s *DataStore) Delete(key string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := validateKey(key); err != nil {
@@ -121,7 +121,7 @@ func (s *State) Delete(key string) error {
 	}
 	return nil
 }
-func (s *State) Update(key string, value interface{}) error {
+func (s *DataStore) Update(key string, value interface{}) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if err := validateKey(key); err != nil {
@@ -133,7 +133,7 @@ func (s *State) Update(key string, value interface{}) error {
 	s.Data[key] = value
 	return nil
 }
-func (s *State) FlushAll() error {
+func (s *DataStore) FlushAll() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.Data = make(map[string]interface{})

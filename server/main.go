@@ -10,17 +10,17 @@ import (
 
 func main() {
 
-	GlobalState, err := persistance.Load()
+	GlobalDataStore, err := persistance.Load()
 
 	if err != nil {
 		fmt.Print(err)
 		return
 	}
 
-	server := network.NewServer(GlobalState)
+	server := network.NewServer(GlobalDataStore)
 	if err := server.Start(); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 
-	defer persistance.Save(GlobalState)
+	defer persistance.Save(GlobalDataStore)
 }
