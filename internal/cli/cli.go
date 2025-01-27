@@ -10,7 +10,7 @@ import (
 
 	"github.com/AbdessamadEnabih/Vertex/internal/cli/commands"
 	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
-	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
+	log "github.com/AbdessamadEnabih/Vertex/pkg/log"
 	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	"github.com/c-bata/go-prompt"
 	"github.com/spf13/cobra"
@@ -120,7 +120,7 @@ func refreshDataStore() {
 	for range ticker.C {
 		datastore, err := persistance.Load()
 		if err != nil {
-			vertex_log.Log("Error while loading datastore: "+err.Error(), "ERROR")
+			log.Log("Error while loading datastore: "+err.Error(), "ERROR")
 		} else {
 			GlobalDataStore = datastore
 		}

@@ -1,4 +1,4 @@
-package vertex_log
+package log
 
 import (
 	"log"
