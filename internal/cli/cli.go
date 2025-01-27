@@ -11,7 +11,7 @@ import (
 	"github.com/AbdessamadEnabih/Vertex/internal/cli/commands"
 	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
 	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
-	"github.com/AbdessamadEnabih/Vertex/pkg/state"
+	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	"github.com/c-bata/go-prompt"
 	"github.com/spf13/cobra"
 )
@@ -22,23 +22,23 @@ var rootCmd = &cobra.Command{
 	Short: "Run vertex commands",
 }
 
-// GlobalState is a pointer to the global state of the application. It is used to store
+// GlobalDataStore is a pointer to the global datastore of the application. It is used to store
 // key-value pairs in memory.
-var GlobalState *state.State
+var GlobalDataStore *datastore.DataStore
 
-// refreshInterval is the interval at which the global state is refreshed from persistence.
+// refreshInterval is the interval at which the global datastore is refreshed from persistence.
 const refreshInterval = 60 * time.Second
 
-// init initializes the CLI by loading the global state and adding the commands to the root command.
+// init initializes the CLI by loading the global datastore and adding the commands to the root command.
 func init() {
-	GlobalState, _ = persistance.Load()
+	GlobalDataStore, _ = persistance.Load()
 	rootCmd.AddCommand(
-		commands.NewGetAllCmd(GlobalState),
-		commands.NewGetCmd(GlobalState),
-		commands.NewSetCmd(GlobalState),
-		commands.NewUpdateCmd(GlobalState),
-		commands.NewDeleteCmd(GlobalState),
-		commands.NewFlushCmd(GlobalState),
+		commands.NewGetAllCmd(GlobalDataStore),
+		commands.NewGetCmd(GlobalDataStore),
+		commands.NewSetCmd(GlobalDataStore),
+		commands.NewUpdateCmd(GlobalDataStore),
+		commands.NewDeleteCmd(GlobalDataStore),
+		commands.NewFlushCmd(GlobalDataStore),
 	)
 }
 
@@ -76,7 +76,7 @@ func executor(input string) {
 
 	if input == "exit" {
 		fmt.Println("\nExiting Vertex...")
-		persistance.Save(GlobalState)
+		persistance.Save(GlobalDataStore)
 		os.Exit(0)
 	}
 
@@ -92,9 +92,9 @@ func executor(input string) {
 }
 
 // Execute is the main function that runs the CLI application. It reads input from the user
-func Execute(GlobalState *state.State) {
-	// Start a goroutine to periodically refresh the global state.
-	go refreshState()
+func Execute(GlobalDataStore *datastore.DataStore) {
+	// Start a goroutine to periodically refresh the global datastore.
+	go refreshDataStore()
 
 	// Start the prompt
 	p := prompt.New(
@@ -112,32 +112,32 @@ func Execute(GlobalState *state.State) {
 	p.Run()
 }
 
-// The `refreshState` function periodically loads and updates the global state from persistence.
-func refreshState() {
+// The `refreshDataStore` function periodically loads and updates the global datastore from persistence.
+func refreshDataStore() {
 	ticker := time.NewTicker(refreshInterval)
 	defer ticker.Stop()
 
 	for range ticker.C {
-		state, err := persistance.Load()
+		datastore, err := persistance.Load()
 		if err != nil {
-			vertex_log.Log("Error while loading state: "+err.Error(), "ERROR")
+			vertex_log.Log("Error while loading datastore: "+err.Error(), "ERROR")
 		} else {
-			GlobalState = state
+			GlobalDataStore = datastore
 		}
 	}
 }
 
 func main() {
-	// Handle SIGINT and SIGTERM signals to save the state before exiting
+	// Handle SIGINT and SIGTERM signals to save the datastore before exiting
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt)
 	signal.Notify(c, syscall.SIGTERM)
 
 	go func() {
 		<-c
-		persistance.Save(GlobalState)
+		persistance.Save(GlobalDataStore)
 		os.Exit(1)
 	}()
 
-	Execute(GlobalState)
+	Execute(GlobalDataStore)
 }
