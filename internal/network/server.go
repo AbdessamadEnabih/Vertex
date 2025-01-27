@@ -16,16 +16,16 @@ import (
 
     "github.com/AbdessamadEnabih/Vertex/internal/persistance"
     "github.com/AbdessamadEnabih/Vertex/pkg/config"
-    "github.com/AbdessamadEnabih/Vertex/pkg/state"
+    "github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 )
 
 type Server struct {
-    state *state.State
+    datastore *datastore.DataStore
 }
 
 // NewServer creates a new server instance
-func NewServer(state *state.State) *Server {
-    return &Server{state: state}
+func NewServer(datastore *datastore.DataStore) *Server {
+    return &Server{datastore: datastore}
 }
 
 // getServerConfiguration returns the server configuration from the config file
@@ -85,7 +85,7 @@ func (s *Server) Start() error {
 
     go func() {
         for range ticker.C {
-            persistance.Save(s.state)
+            persistance.Save(s.datastore)
         }
     }()
 
@@ -123,7 +123,7 @@ func (s *Server) handleConnection(conn net.Conn) {
         case strings.HasPrefix(msg, "SET "):
             key, value, err := parseKeyValue(msg)
             if err == nil {
-                err = s.state.Set(key, value)
+                err = s.datastore.Set(key, value)
                 if err != nil {
                     writer.WriteString(formatErrorString(msg, err.Error()))
                 } else {
@@ -135,7 +135,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
         case strings.HasPrefix(msg, "GET "):
             key := strings.TrimSpace(msg[4:]) // Remove "GET " prefix
-            value, err := s.state.Get(key)
+            value, err := s.datastore.Get(key)
             if err != nil {
                 writer.WriteString("NODATA\r\n")
             } else {
@@ -144,7 +144,7 @@ func (s *Server) handleConnection(conn net.Conn) {
 
         case strings.HasPrefix(msg, "DELETE "):
             key := strings.TrimSpace(msg[8:]) // Remove "DELETE " prefix
-            err := s.state.Delete(key)
+            err := s.datastore.Delete(key)
             if err != nil {
                 writer.WriteString("NODATA\r\n")
             } else {
@@ -152,7 +152,7 @@ func (s *Server) handleConnection(conn net.Conn) {
             }
 
         case msg == "ALL":
-            values := s.state.GetAll()
+            values := s.datastore.GetAll()
             writer.WriteString("ALLVALUES\r\n")
             for key, value := range values {
                 writer.WriteString(fmt.Sprintf("%s=%s\r\n", key, value))
@@ -160,7 +160,7 @@ func (s *Server) handleConnection(conn net.Conn) {
             writer.WriteString("ENDOFALLVALUES\r\n")
 
         case msg == "FLUSH":
-            err := s.state.FlushAll()
+            err := s.datastore.FlushAll()
             if err != nil {
                 writer.WriteString(formatErrorString(msg, err.Error()))
             } else {
