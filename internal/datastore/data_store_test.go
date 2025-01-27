@@ -1,4 +1,4 @@
-package state_test
+package datastore_test
 
 import (
 	"fmt"
@@ -6,16 +6,16 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/AbdessamadEnabih/Vertex/internal/state"
+	"github.com/AbdessamadEnabih/Vertex/internal/datastore"
 )
 
-var State state.State = *state.NewState()
+var dataStore datastore.DataStore = *datastore.NewDataStore()
 
 func Test(t *testing.T) {
 
-	// Check if the type of State.data is map[string]interface{}
-	if reflect.TypeOf(State.Data) != reflect.TypeOf(map[string]interface{}{}) {
-		t.Errorf("Expected State.Data to be of type map[string]interface{}, but got %T", State.Data)
+	// Check if the type of dataStore.data is map[string]interface{}
+	if reflect.TypeOf(dataStore.Data) != reflect.TypeOf(map[string]interface{}{}) {
+		t.Errorf("Expected dataStore.Data to be of type map[string]interface{}, but got %T", dataStore.Data)
 	}
 
 	// Test setting and getting values
@@ -28,27 +28,27 @@ func Test(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		State.Set(tt.key, tt.expected)
+		dataStore.Set(tt.key, tt.expected)
 
-		if got, _ := State.Get(tt.key); !reflect.DeepEqual(got, tt.expected) {
+		if got, _ := dataStore.Get(tt.key); !reflect.DeepEqual(got, tt.expected) {
 			t.Errorf("Expected %s to be %v, but got %v", tt.key, tt.expected, got)
 		}
 	}
 
 	// Test Empty key
 	emptyKey := ""
-	if got, err := State.Get(emptyKey); got != nil && err.Error() == "Empty key is not allowed" {
+	if got, err := dataStore.Get(emptyKey); got != nil && err.Error() == "Empty key is not allowed" {
 		t.Errorf("Expected nil and error for empty key, but got %v", got)
 	}
 
 	// Test for an invalid key
 	invalidKey := "invalidKey"
-	if got, err := State.Get(invalidKey); got != nil && err.Error() == "Key not found" {
+	if got, err := dataStore.Get(invalidKey); got != nil && err.Error() == "Key not found" {
 		t.Errorf("Expected nil for key %s, but got %v", invalidKey, got)
 	}
 
 	// Call GetAll and compare results
-	result := State.GetAll()
+	result := dataStore.GetAll()
 
 	// Check if all keys exist in the result
 	if len(result) != 2 {
@@ -57,10 +57,10 @@ func Test(t *testing.T) {
 
 }
 
-func TestState_GetAll_Empty(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_GetAll_Empty(t *testing.T) {
+	s := datastore.NewDataStore()
 
-	// Call GetAll on empty state
+	// Call GetAll on empty DataStore
 	result := s.GetAll()
 
 	// Check if result is empty
@@ -69,73 +69,73 @@ func TestState_GetAll_Empty(t *testing.T) {
 	}
 }
 
-func TestState_Delete(t *testing.T) {
+func TestDataStore_Delete(t *testing.T) {
 	// Add some test data
-	State.Set("testKey1", "value1")
-	State.Set("testKey2", 42)
+	dataStore.Set("testKey1", "value1")
+	dataStore.Set("testKey2", 42)
 
 	// Test deleting a non-existent key
-	err := State.Delete("nonExistentKey")
+	err := dataStore.Delete("nonExistentKey")
 	if err == nil || err.Error() != "Key not found" {
 		t.Errorf("Expected error 'Key not found' when deleting non-existent key, but got %v", err)
 	}
 
 	// Test deleting an existing key
-	err = State.Delete("testKey1")
+	err = dataStore.Delete("testKey1")
 	if err != nil {
 		t.Errorf("Expected nil when deleting existing key, but got error: %v", err)
 	}
 
 	// Verify that the key was removed
-	got, _ := State.Get("testKey1")
+	got, _ := dataStore.Get("testKey1")
 	if got != nil {
 		t.Errorf("Expected nil for deleted key, but got %v", got)
 	}
 
 	// Test deleting another existing key
-	err = State.Delete("testKey2")
+	err = dataStore.Delete("testKey2")
 	if err != nil {
 		t.Errorf("Expected nil when deleting existing key, but got error: %v", err)
 	}
 
 	// Verify that the second key was also removed
-	got, _ = State.Get("testKey2")
+	got, _ = dataStore.Get("testKey2")
 	if got != nil {
 		t.Errorf("Expected nil for deleted key, but got %v", got)
 	}
 
 	// Test deleting the same key again (should return an error)
-	err = State.Delete("testKey2")
+	err = dataStore.Delete("testKey2")
 	if err == nil || err.Error() != "Key not found" {
 		t.Errorf("Expected error 'Key not found' when deleting already deleted key, but got %v", err)
 	}
 }
 
-func TestState_Update(t *testing.T) {
-	// Create a new State instance for this test
-	var updateState state.State = *state.NewState()
+func TestDataStore_Update(t *testing.T) {
+	// Create a new DataStore instance for this test
+	var updateDataStore datastore.DataStore = *datastore.NewDataStore()
 
-	updateState.Set("key1", 22)
+	updateDataStore.Set("key1", 22)
 
 	value := "updatedkey"
-	updateState.Update("key1", value)
-	if got, _ := updateState.Get("key1"); got != value {
+	updateDataStore.Update("key1", value)
+	if got, _ := updateDataStore.Get("key1"); got != value {
 		t.Fatalf("Expected value to be %v and got %v", value, got)
 	}
 
 	// Test update of non existent key
-	errExpected := updateState.Update("invalidkey", value)
+	errExpected := updateDataStore.Update("invalidkey", value)
 	if errExpected.Error() != "Key not found" {
 		t.Errorf("Expected false when deleting non-existent key, got true")
 	}
 
 	// Clean up
-	updateState.Delete("key1")
-	updateState.Delete("invalidkey")
+	updateDataStore.Delete("key1")
+	updateDataStore.Delete("invalidkey")
 }
 
-func TestState_LargeKey(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_LargeKey(t *testing.T) {
+	s := datastore.NewDataStore()
 	largeKey := strings.Repeat("x", 1024*1024) // 1MB key
 	value := "test"
 
@@ -146,8 +146,8 @@ func TestState_LargeKey(t *testing.T) {
 	}
 }
 
-func TestState_LargeValue(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_LargeValue(t *testing.T) {
+	s := datastore.NewDataStore()
 	key := "test"
 	largeValue := strings.Repeat("x", 1024*1024) // 1MB value
 
@@ -158,8 +158,8 @@ func TestState_LargeValue(t *testing.T) {
 	}
 }
 
-func TestState_EmptyKey(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_EmptyKey(t *testing.T) {
+	s := datastore.NewDataStore()
 
 	err := s.Set("", "test")
 	if err.Error() != "Empty key is not allowed" {
@@ -167,8 +167,8 @@ func TestState_EmptyKey(t *testing.T) {
 	}
 }
 
-func TestState_EmptyValue(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_EmptyValue(t *testing.T) {
+	s := datastore.NewDataStore()
 
 	s.Set("key", "")
 	got, _ := s.Get("key")
@@ -177,8 +177,8 @@ func TestState_EmptyValue(t *testing.T) {
 	}
 }
 
-func TestState_NilValue(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_NilValue(t *testing.T) {
+	s := datastore.NewDataStore()
 
 	s.Set("key", nil)
 	got, err := s.Get("key")
@@ -187,8 +187,8 @@ func TestState_NilValue(t *testing.T) {
 	}
 }
 
-func TestState_SpecialCharacters(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_SpecialCharacters(t *testing.T) {
+	s := datastore.NewDataStore()
 
 	specialKey := "!@#$%^&*()"
 	value := "test"
@@ -200,8 +200,8 @@ func TestState_SpecialCharacters(t *testing.T) {
 	}
 }
 
-func TestState_Unicode(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_Unicode(t *testing.T) {
+	s := datastore.NewDataStore()
 
 	unicodeKey := "π"
 	unicodeValue := "αβγ"
@@ -213,8 +213,8 @@ func TestState_Unicode(t *testing.T) {
 	}
 }
 
-func TestState_OutOfMemory(t *testing.T) {
-	s := state.NewState()
+func TestDataStore_OutOfMemory(t *testing.T) {
+	s := datastore.NewDataStore()
 
 	// Attempt to store extremely large amounts of data
 	for i := 0; i < 10000; i++ {
