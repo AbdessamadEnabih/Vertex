@@ -1,9 +1,8 @@
-package persistance
+package persistence
 
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"os"
@@ -18,7 +17,7 @@ import (
 func get_datastore_path() string {
 	persistence_config, err := config.GetConfigByField("Persistence")
 	if err != nil {
-		vertex_log.Log("Error getting persistence config: "+err.Error(), "ERROR")
+		logError("Error getting persistence config", "", err)
 	}
 
 	dir, _ := os.Getwd()
@@ -26,28 +25,18 @@ func get_datastore_path() string {
 	return filepath.Join(filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String()), "datastore.data")
 }
 
-func Save(datastore *datastore.DataStore) {
+func Save(datastore *datastore.DataStore) error {
 	datastorepath := get_datastore_path()
-	_, err := os.Stat(datastorepath)
-	if err == nil {
-		writeInDataStoreFile(datastore, datastorepath)
-	} else if os.IsNotExist(err) {
-		file, err := os.Create(datastorepath)
-		if err != nil {
-			logError("Error creating file", datastorepath, err)
-			return
-		}
-		defer file.Close()
 
-		writeInDataStoreFile(datastore, datastorepath)
-	} else {
-		logError("Error checking file existence", datastorepath, err)
-		return
+	if err := WriteInDataStoreFile(datastore, datastorepath); err != nil {
+		logError("Error saving datastore", datastorepath, err)
+		return err
 	}
+	return nil
 }
 
-func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error {
-	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_TRUNC, 0644)
+func WriteInDataStoreFile(datastore *datastore.DataStore, filepath string) error {
+	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		logError("Error opening file for writing", filepath, err)
 		return err
@@ -61,24 +50,17 @@ func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error
 	}
 
 	data := []byte(jsonData)
-
 	var compressedBuffer bytes.Buffer
-
 	gzipWriter := gzip.NewWriter(&compressedBuffer)
-
-	_, err = gzipWriter.Write(data)
+	_, err = gzipWriter.Write(jsonData)
 	if err != nil {
 		logError("Error compressing data", filepath, err)
 		return err
 	}
+	gzipWriter.Close()
+	data = compressedBuffer.Bytes()
 
-	err = gzipWriter.Close()
-	if err != nil {
-		logError("Error closing gzip writer", filepath, err)
-		return err
-	}
-
-	_, err = file.Write(compressedBuffer.Bytes())
+	_, err = file.Write(data)
 	if err != nil {
 		logError("Error writing compressed data to file", filepath, err)
 		return err
@@ -87,24 +69,17 @@ func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error
 	return nil
 }
 
-func readDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
-	encodedData, err := os.ReadFile(filepath)
+func ReadDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
+	compressedData, err := os.ReadFile(filepath)
 	if err != nil {
-		vertex_log.Log("Error reading file at path "+filepath+": "+err.Error(), "ERROR")
-		return nil, err
-	}
-
-	compressedData, err := base64.StdEncoding.DecodeString(string(encodedData))
-	if err != nil {
-		vertex_log.Log("Error decoding base64 data: "+err.Error(), "ERROR")
+		logError("Error reading file", filepath, err)
 		return nil, err
 	}
 
 	compressedBuffer := bytes.NewBuffer(compressedData)
-
 	gzipReader, err := gzip.NewReader(compressedBuffer)
 	if err != nil {
-		vertex_log.Log("Error creating gzip reader: "+err.Error(), "ERROR")
+		logError("Error creating gzip reader", filepath, err)
 		return nil, err
 	}
 	defer gzipReader.Close()
@@ -113,14 +88,14 @@ func readDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
 	var decompressedBuffer bytes.Buffer
 	_, err = io.Copy(&decompressedBuffer, gzipReader)
 	if err != nil {
-		vertex_log.Log("Error decompressing data: "+err.Error(), "ERROR")
+		logError("Error decompressing data", filepath, err)
 		return nil, err
 	}
 
 	var savedDataStore datastore.DataStore
 	err = json.Unmarshal(decompressedBuffer.Bytes(), &savedDataStore)
 	if err != nil {
-		vertex_log.Log("Error unmarshaling JSON data: "+err.Error(), "ERROR")
+		logError("Error unmarshaling JSON data", filepath, err)
 		return nil, err
 	}
 
@@ -132,22 +107,26 @@ func Load() (*datastore.DataStore, error) {
 
 	_, err := os.Stat(datastorepath)
 	if os.IsNotExist(err) {
-		vertex_log.Log("DataStore not found at path "+datastorepath+": "+err.Error(), "ERROR")
+		logError("DataStore not found", datastorepath, err)
 		return datastore.NewDataStore(), nil
 	}
 	if err == nil {
-		savedDataStore, err := readDataStoreFromFile(datastorepath)
+		savedDataStore, err := ReadDataStoreFromFile(datastorepath)
 		if err != nil {
-			vertex_log.Log("Error reading datastore file at path "+datastorepath+": "+err.Error(), "ERROR")
+			logError("Error reading datastore file", datastorepath, err)
 			return datastore.NewDataStore(), err
 		}
 		return savedDataStore, nil
 	} else {
-		vertex_log.Log("Error checking file existence at path "+datastorepath+": "+err.Error(), "ERROR")
+		logError("Error checking file existence", datastorepath, err)
 		return datastore.NewDataStore(), err
 	}
 }
 
 func logError(message, filepath string, err error) {
-	vertex_log.Log(message+" at path "+filepath+": "+err.Error(), "ERROR")
+	if filepath != "" {
+		vertex_log.Log(message+" at path "+filepath+": "+err.Error(), "ERROR")
+	} else {
+		vertex_log.Log(message+": "+err.Error(), "ERROR")
+	}
 }
