@@ -5,12 +5,12 @@ import (
 	"log"
 
 	"github.com/AbdessamadEnabih/Vertex/internal/network"
-	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
+	"github.com/AbdessamadEnabih/Vertex/internal/persistence"
 )
 
 func main() {
 
-	GlobalDataStore, err := persistance.Load()
+	GlobalDataStore, err := persistence.Load()
 
 	if err != nil {
 		fmt.Print(err)
@@ -22,5 +22,5 @@ func main() {
 		log.Fatalf("Failed to start server: %v", err)
 	}
 
-	defer persistance.Save(GlobalDataStore)
+	defer persistence.Save(GlobalDataStore)
 }

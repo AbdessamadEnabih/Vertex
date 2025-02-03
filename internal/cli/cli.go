@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"github.com/AbdessamadEnabih/Vertex/internal/cli/commands"
-	"github.com/AbdessamadEnabih/Vertex/internal/persistance"
-	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
+	"github.com/AbdessamadEnabih/Vertex/internal/persistence"
 	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
+	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
 	"github.com/c-bata/go-prompt"
 	"github.com/spf13/cobra"
 )
@@ -31,7 +31,7 @@ const refreshInterval = 60 * time.Second
 
 // init initializes the CLI by loading the global datastore and adding the commands to the root command.
 func init() {
-	GlobalDataStore, _ = persistance.Load()
+	GlobalDataStore, _ = persistence.Load()
 	rootCmd.AddCommand(
 		commands.NewGetAllCmd(GlobalDataStore),
 		commands.NewGetCmd(GlobalDataStore),
@@ -76,7 +76,7 @@ func executor(input string) {
 
 	if input == "exit" {
 		fmt.Println("\nExiting Vertex...")
-		persistance.Save(GlobalDataStore)
+		persistence.Save(GlobalDataStore)
 		os.Exit(0)
 	}
 
@@ -118,7 +118,7 @@ func refreshDataStore() {
 	defer ticker.Stop()
 
 	for range ticker.C {
-		datastore, err := persistance.Load()
+		datastore, err := persistence.Load()
 		if err != nil {
 			vertex_log.Log("Error while loading datastore: "+err.Error(), "ERROR")
 		} else {
@@ -135,7 +135,7 @@ func main() {
 
 	go func() {
 		<-c
-		persistance.Save(GlobalDataStore)
+		persistence.Save(GlobalDataStore)
 		os.Exit(1)
 	}()
 
