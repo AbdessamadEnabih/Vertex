@@ -3,7 +3,6 @@ package persistance
 import (
 	"bytes"
 	"compress/gzip"
-	"encoding/base64"
 	"encoding/json"
 	"io"
 	"os"
@@ -88,20 +87,13 @@ func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error
 }
 
 func readDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
-	encodedData, err := os.ReadFile(filepath)
+	compressedData, err := os.ReadFile(filepath)
 	if err != nil {
 		logError("Error reading file", filepath, err)
 		return nil, err
 	}
 
-	compressedData, err := base64.StdEncoding.DecodeString(string(encodedData))
-	if err != nil {
-		logError("Error decoding base64 data", filepath, err)
-		return nil, err
-	}
-
 	compressedBuffer := bytes.NewBuffer(compressedData)
-
 	gzipReader, err := gzip.NewReader(compressedBuffer)
 	if err != nil {
 		logError("Error creating gzip reader", filepath, err)
