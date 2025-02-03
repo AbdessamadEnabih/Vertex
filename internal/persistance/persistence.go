@@ -27,7 +27,7 @@ func get_datastore_path() string {
 
 func Save(datastore *datastore.DataStore) error {
 	datastorepath := get_datastore_path()
-	
+
 	if err := writeInDataStoreFile(datastore, datastorepath); err != nil {
 		logError("Error saving datastore", datastorepath, err)
 		return err
@@ -49,25 +49,23 @@ func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error
 		return err
 	}
 
-	data := []byte(jsonData)
+	var data []byte
 
-	var compressedBuffer bytes.Buffer
-
-	gzipWriter := gzip.NewWriter(&compressedBuffer)
-
-	_, err = gzipWriter.Write(data)
-	if err != nil {
-		logError("Error compressing data", filepath, err)
-		return err
+	if len(jsonData) > 1024 {
+		var compressedBuffer bytes.Buffer
+		gzipWriter := gzip.NewWriter(&compressedBuffer)
+		_, err = gzipWriter.Write(jsonData)
+		if err != nil {
+			logError("Error compressing data", filepath, err)
+			return err
+		}
+		gzipWriter.Close()
+		data = compressedBuffer.Bytes()
+	} else {
+		data = jsonData
 	}
 
-	err = gzipWriter.Close()
-	if err != nil {
-		logError("Error closing gzip writer", filepath, err)
-		return err
-	}
-
-	_, err = file.Write(compressedBuffer.Bytes())
+	_, err = file.Write(data)
 	if err != nil {
 		logError("Error writing compressed data to file", filepath, err)
 		return err
