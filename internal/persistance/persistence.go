@@ -25,28 +25,18 @@ func get_datastore_path() string {
 	return filepath.Join(filepath.Join(dir, reflect.ValueOf(persistence_config).FieldByName("Path").String()), "datastore.data")
 }
 
-func Save(datastore *datastore.DataStore) {
+func Save(datastore *datastore.DataStore) error {
 	datastorepath := get_datastore_path()
-	_, err := os.Stat(datastorepath)
-	if err == nil {
-		writeInDataStoreFile(datastore, datastorepath)
-	} else if os.IsNotExist(err) {
-		file, err := os.Create(datastorepath)
-		if err != nil {
-			logError("Error creating file", datastorepath, err)
-			return
-		}
-		defer file.Close()
-
-		writeInDataStoreFile(datastore, datastorepath)
-	} else {
-		logError("Error checking file existence", datastorepath, err)
-		return
+	
+	if err := writeInDataStoreFile(datastore, datastorepath); err != nil {
+		logError("Error saving datastore", datastorepath, err)
+		return err
 	}
+	return nil
 }
 
 func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error {
-	file, err := os.OpenFile(filepath, os.O_RDWR|os.O_TRUNC, 0644)
+	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		logError("Error opening file for writing", filepath, err)
 		return err
