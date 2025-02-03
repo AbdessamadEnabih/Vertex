@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/AbdessamadEnabih/Vertex/internal/network"
-	"github.com/AbdessamadEnabih/Vertex/internal/persistence"
+	"github.com/AbdessamadEnabih/Vertex/pkg/persistence"
 )
 
 func main() {

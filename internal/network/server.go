@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/AbdessamadEnabih/Vertex/internal/persistence"
+	"github.com/AbdessamadEnabih/Vertex/pkg/persistence"
 	"github.com/AbdessamadEnabih/Vertex/pkg/config"
 	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 )

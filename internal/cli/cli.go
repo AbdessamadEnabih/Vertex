@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"github.com/AbdessamadEnabih/Vertex/internal/cli/commands"
-	"github.com/AbdessamadEnabih/Vertex/internal/persistence"
+	"github.com/AbdessamadEnabih/Vertex/pkg/persistence"
 	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
 	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
 	"github.com/c-bata/go-prompt"

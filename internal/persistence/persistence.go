@@ -28,14 +28,14 @@ func get_datastore_path() string {
 func Save(datastore *datastore.DataStore) error {
 	datastorepath := get_datastore_path()
 
-	if err := writeInDataStoreFile(datastore, datastorepath); err != nil {
+	if err := WriteInDataStoreFile(datastore, datastorepath); err != nil {
 		logError("Error saving datastore", datastorepath, err)
 		return err
 	}
 	return nil
 }
 
-func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error {
+func WriteInDataStoreFile(datastore *datastore.DataStore, filepath string) error {
 	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR|os.O_TRUNC, 0644)
 	if err != nil {
 		logError("Error opening file for writing", filepath, err)
@@ -49,21 +49,16 @@ func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error
 		return err
 	}
 
-	var data []byte
-
-	if len(jsonData) > 1024 {
-		var compressedBuffer bytes.Buffer
-		gzipWriter := gzip.NewWriter(&compressedBuffer)
-		_, err = gzipWriter.Write(jsonData)
-		if err != nil {
-			logError("Error compressing data", filepath, err)
-			return err
-		}
-		gzipWriter.Close()
-		data = compressedBuffer.Bytes()
-	} else {
-		data = jsonData
+	data := []byte(jsonData)
+	var compressedBuffer bytes.Buffer
+	gzipWriter := gzip.NewWriter(&compressedBuffer)
+	_, err = gzipWriter.Write(jsonData)
+	if err != nil {
+		logError("Error compressing data", filepath, err)
+		return err
 	}
+	gzipWriter.Close()
+	data = compressedBuffer.Bytes()
 
 	_, err = file.Write(data)
 	if err != nil {
@@ -74,7 +69,7 @@ func writeInDataStoreFile(datastore *datastore.DataStore, filepath string) error
 	return nil
 }
 
-func readDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
+func ReadDataStoreFromFile(filepath string) (*datastore.DataStore, error) {
 	compressedData, err := os.ReadFile(filepath)
 	if err != nil {
 		logError("Error reading file", filepath, err)
@@ -116,7 +111,7 @@ func Load() (*datastore.DataStore, error) {
 		return datastore.NewDataStore(), nil
 	}
 	if err == nil {
-		savedDataStore, err := readDataStoreFromFile(datastorepath)
+		savedDataStore, err := ReadDataStoreFromFile(datastorepath)
 		if err != nil {
 			logError("Error reading datastore file", datastorepath, err)
 			return datastore.NewDataStore(), err
