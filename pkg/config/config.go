@@ -38,41 +38,31 @@ type Config struct {
 }
 
 func getConfigPath() string {
-	// Get environment and config path variables
-	vertexEnv := os.Getenv("VERTEX_ENV")
-	configPath := os.Getenv("VERTEX_CONFIG_PATH")
+    // Use the config path if explicitly set
+    if configPath := os.Getenv("VERTEX_CONFIG_PATH"); configPath != "" {
+        return configPath
+    }
 
-	// Use the config path if explicitly set
-	if configPath != "" {
-		return configPath
-	}
+    // Default environment to "development" if not set
+    vertexEnv := os.Getenv("VERTEX_ENV")
+    if vertexEnv == "" {
+        vertexEnv = "development"
+    }
 
-	// Default environment to "development" if not set
-	if vertexEnv == "" {
-		vertexEnv = "development"
-	}
-
-	// Determine config path based on environment
-	switch vertexEnv {
-	case "production":
-		configPath = "/etc/vertex/config.yaml"
-	case "development":
-		_, filename, _, ok := runtime.Caller(0)
-		if !ok {
-			panic("unable to determine caller information")
-		}
-
-		// Assuming this file is in [project_root]/pkg/config, move up two directories.
-		projectRoot := filepath.Join(filepath.Dir(filename), "..", "..")
-
-		// Construct the absolute path to the config file.
-		return filepath.Join(projectRoot, "configs", "config.yaml")
-	default:
-		// Default fallback if env is unknown
-		configPath = "configs/config.yaml"
-	}
-
-	return configPath
+    switch vertexEnv {
+    case "production":
+        return "/etc/vertex/config.yaml"
+    case "development":
+        _, filename, _, ok := runtime.Caller(0)
+        if !ok {
+            panic("unable to determine caller information")
+        }
+        // Assuming this file is in [project_root]/pkg/config, move up two directories.
+        projectRoot := filepath.Join(filepath.Dir(filename), "..", "..")
+        return filepath.Join(projectRoot, "configs", "config.yaml")
+    default:
+        return "configs/config.yaml"
+    }
 }
 
 func LoadConfig() *Config {
