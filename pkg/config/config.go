@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
+	"runtime"
 
 	"gopkg.in/yaml.v2"
 )
@@ -25,8 +26,8 @@ type Config struct {
 	} `yaml:"state"`
 	Server struct {
 		Adress string `yaml:"adress"`
-		Port int    `yaml:"port"`
-		SSL bool   `yaml:"ssl"`
+		Port   int    `yaml:"port"`
+		SSL    bool   `yaml:"ssl"`
 	} `yaml:"server"`
 	Persistence struct {
 		Path             string `yaml:"path"`
@@ -56,13 +57,16 @@ func getConfigPath() string {
 	case "production":
 		configPath = "/etc/vertex/config.yaml"
 	case "development":
-		// Use the current working directory to form the path
-		if cwd, err := os.Getwd(); err == nil {
-			configPath = filepath.Join(cwd, "configs", "config.yaml")
-		} else {
-			// Fallback path if unable to get working directory
-			configPath = "configs/config.yaml"
+		_, filename, _, ok := runtime.Caller(0)
+		if !ok {
+			panic("unable to determine caller information")
 		}
+
+		// Assuming this file is in [project_root]/pkg/config, move up two directories.
+		projectRoot := filepath.Join(filepath.Dir(filename), "..", "..")
+
+		// Construct the absolute path to the config file.
+		return filepath.Join(projectRoot, "configs", "config.yaml")
 	default:
 		// Default fallback if env is unknown
 		configPath = "configs/config.yaml"
