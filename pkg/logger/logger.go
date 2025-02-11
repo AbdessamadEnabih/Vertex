@@ -1,21 +1,21 @@
-package vertex_log
+package logger
 
 import (
 	"log"
 	"os"
 	"path/filepath"
-	"reflect"
-
-	"github.com/AbdessamadEnabih/Vertex/pkg/config"
+	"runtime"
 )
 
 func get_log_path() string {
-	logging_config, err := config.GetConfigByField("Logging")
-	if err != nil {
-		Log("Error getting logging config: "+err.Error(), "ERROR")
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("unable to determine caller information")
 	}
+	projectRoot := filepath.Join(filepath.Dir(filename), "..", "..")
 
-	return reflect.ValueOf(logging_config).FieldByName("Path").String()
+	// Return the logs folder inside the project root
+	return filepath.Join(projectRoot, "logs")
 }
 
 var (
@@ -24,17 +24,21 @@ var (
 )
 
 func init() {
-	// Get log file path
-	logFilePath = filepath.Join(get_log_path(), logFileName)
+	// Get log folder path
+	logFolderPath := get_log_path()
+	logFilePath = filepath.Join(logFolderPath, logFileName)
 
 	// Create logs directory if not exists
-	if _, err := os.Stat("logs"); os.IsNotExist(err) {
-		os.Mkdir("logs", 0755)
+	if _, err := os.Stat(logFolderPath); os.IsNotExist(err) {
+		err := os.Mkdir(logFolderPath, 0755)
+		if err != nil {
+			log.Fatalf("Error creating log directory: %v", err)
+		}
 	}
 	// Create log file if not exists
-	if _, err := os.Stat(logFileName); os.IsNotExist(err) {
-		os.Create(logFileName)
-		os.Chmod(logFileName, 0644)
+	if _, err := os.Stat(logFilePath); os.IsNotExist(err) {
+		os.Create(logFilePath)
+		os.Chmod(logFilePath, 0644)
 	}
 }
 
