@@ -5,13 +5,13 @@ go 1.23
 toolchain go1.23.0
 
 require (
+	github.com/c-bata/go-prompt v0.2.6
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/spf13/cobra v1.8.1
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	github.com/c-bata/go-prompt v0.2.6 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/kr/pretty v0.3.1 // indirect
 	github.com/mattn/go-colorable v0.1.7 // indirect
