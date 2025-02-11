@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewSetCmd(globaledatastore *datastore.DataStore) *cobra.Command {
+func NewSetCmd(globaleDataStore *datastore.DataStore) *cobra.Command {
 	return &cobra.Command{
 		Use:       "set",
 		Short:     "Set a key-value pair",
@@ -17,7 +17,7 @@ func NewSetCmd(globaledatastore *datastore.DataStore) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			key := args[0]
 			value := args[1]
-			err := globaledatastore.Set(key, value)
+			err := globaleDataStore.Set(key, value)
 			if err != nil {
 				fmt.Printf("Unable to set the key %v: %v\n", args[0], err)
 			}

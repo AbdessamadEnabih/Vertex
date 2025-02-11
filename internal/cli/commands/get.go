@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewGetCmd(globaledatastore *datastore.DataStore) *cobra.Command {
+func NewGetCmd(globaleDataStore *datastore.DataStore) *cobra.Command {
 	return &cobra.Command{
 		Use:       "get",
 		Short:     "Get a key-value pair",
@@ -16,7 +16,7 @@ func NewGetCmd(globaledatastore *datastore.DataStore) *cobra.Command {
 		Args:      cobra.ExactArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			key := args[0]
-			value, err := globaledatastore.Get(key)
+			value, err := globaleDataStore.Get(key)
 			if err != nil {
 				fmt.Printf("Unable to get the key %v: %v\n", args[0], err)
 			} else {

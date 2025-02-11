@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-func NewUpdateCmd(globaledatastore *datastore.DataStore) *cobra.Command {
+func NewUpdateCmd(globaleDataStore *datastore.DataStore) *cobra.Command {
 	return &cobra.Command{
 		Use:       "update",
 		Short:     "Update a key-value pair",
@@ -17,7 +17,7 @@ func NewUpdateCmd(globaledatastore *datastore.DataStore) *cobra.Command {
 		Run: func(cmd *cobra.Command, args []string) {
 			key := args[0]
 			value := args[1]
-			err := globaledatastore.Update(key, value)
+			err := globaleDataStore.Update(key, value)
 			if err != nil {
 				fmt.Printf("Unable to update the key %v: %v\n", args[0], err)
 			}
