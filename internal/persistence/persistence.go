@@ -11,7 +11,7 @@ import (
 
 	"github.com/AbdessamadEnabih/Vertex/pkg/config"
 	"github.com/AbdessamadEnabih/Vertex/pkg/datastore"
-	vertex_log "github.com/AbdessamadEnabih/Vertex/pkg/log"
+	logger "github.com/AbdessamadEnabih/Vertex/pkg/logger"
 )
 
 func get_datastore_path() string {
@@ -125,8 +125,8 @@ func Load() (*datastore.DataStore, error) {
 
 func logError(message, filepath string, err error) {
 	if filepath != "" {
-		vertex_log.Log(message+" at path "+filepath+": "+err.Error(), "ERROR")
+		logger.Log(message+" at path "+filepath+": "+err.Error(), "ERROR")
 	} else {
-		vertex_log.Log(message+": "+err.Error(), "ERROR")
+		logger.Log(message+": "+err.Error(), "ERROR")
 	}
 }
