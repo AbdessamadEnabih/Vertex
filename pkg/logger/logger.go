@@ -1,8 +1,4 @@
-<<<<<<<< HEAD:pkg/logger/log.go
-package log
-========
 package logger
->>>>>>>> main:pkg/logger/logger.go
 
 import (
 	"log"
